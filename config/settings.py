@@ -13,8 +13,14 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
     database_url: str = "sqlite:///./ai_operations_employee.db"
+    # AI provider selection: "openai" | "groq" | "gemini"
+    ai_provider: str = "openai"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4.1-mini"
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.0-flash"
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
     odoo_url: str | None = None
