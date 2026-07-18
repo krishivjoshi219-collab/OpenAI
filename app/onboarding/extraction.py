@@ -125,10 +125,21 @@ class CsvExtractionProvider:
     def _parse_customers(self, rows: list[dict[str, str]]) -> list[ExtractedRecord]:
         return [
             CustomerRecord(
-                name=self._required(row, "name"),
-                email=self._optional(row, "email"),
-                phone=self._optional(row, "phone"),
-                billing_address=self._optional(row, "billing_address", "address"),
+                name=self._required(
+                    row, "name", "customer_name", "full_name", "contact_name",
+                    "contact", "client_name", "client",
+                ),
+                email=self._optional(
+                    row, "email", "email_address", "contact_email", "e_mail",
+                ),
+                phone=self._optional(
+                    row, "phone", "phone_number", "telephone", "mobile",
+                    "mobile_number", "tel", "contact_number",
+                ),
+                billing_address=self._optional(
+                    row, "billing_address", "address", "street_address",
+                    "location", "bill_to_address",
+                ),
             )
             for row in rows
         ]
@@ -136,11 +147,24 @@ class CsvExtractionProvider:
     def _parse_products(self, rows: list[dict[str, str]]) -> list[ExtractedRecord]:
         return [
             ProductRecord(
-                name=self._required(row, "name"),
-                sku=self._required(row, "sku"),
-                unit_price=self._decimal(row, "unit_price", "price"),
-                cost_price=self._optional_decimal(row, "cost_price", "cost"),
-                description=self._optional(row, "description"),
+                name=self._required(
+                    row, "name", "product_name", "item_name", "item",
+                    "product", "title",
+                ),
+                sku=self._required(
+                    row, "sku", "product_code", "item_code", "code", "ref",
+                    "reference", "part_number", "product_id",
+                ),
+                unit_price=self._decimal(
+                    row, "unit_price", "price", "selling_price", "sale_price",
+                    "rate", "list_price", "retail_price",
+                ),
+                cost_price=self._optional_decimal(
+                    row, "cost_price", "cost", "purchase_price", "buy_price", "cogs",
+                ),
+                description=self._optional(
+                    row, "description", "details", "notes", "product_description", "summary",
+                ),
             )
             for row in rows
         ]
@@ -148,9 +172,19 @@ class CsvExtractionProvider:
     def _parse_stock(self, rows: list[dict[str, str]]) -> list[ExtractedRecord]:
         return [
             StockRecord(
-                sku=self._required(row, "sku"),
-                quantity_on_hand=self._decimal(row, "quantity_on_hand", "quantity", "stock"),
-                reorder_level=self._optional_decimal(row, "reorder_level") or Decimal("0"),
+                sku=self._required(
+                    row, "sku", "product_code", "item_code", "code",
+                    "ref", "reference", "product_id",
+                ),
+                quantity_on_hand=self._decimal(
+                    row, "quantity_on_hand", "quantity", "stock", "qty",
+                    "stock_level", "on_hand", "available", "inventory",
+                    "balance", "current_stock",
+                ),
+                reorder_level=self._optional_decimal(
+                    row, "reorder_level", "reorder_point", "min_stock",
+                    "minimum", "min_qty", "reorder",
+                ) or Decimal("0"),
             )
             for row in rows
         ]
@@ -158,23 +192,41 @@ class CsvExtractionProvider:
     def _parse_invoices(self, rows: list[dict[str, str]]) -> list[ExtractedRecord]:
         records: list[ExtractedRecord] = []
         for row in rows:
-            status_value = self._optional(row, "status") or InvoiceStatus.DRAFT.value
+            status_value = self._optional(
+                row, "status", "invoice_status", "state", "payment_status",
+            ) or InvoiceStatus.DRAFT.value
             try:
                 status = InvoiceStatus(status_value.lower())
             except ValueError as error:
                 raise ValueError(f"Unsupported invoice status: {status_value}") from error
             records.append(
                 InvoiceRecord(
-                    invoice_number=self._required(row, "invoice_number", "number"),
-                    customer_name=self._required(row, "customer_name", "customer"),
-                    customer_email=self._optional(row, "customer_email", "email"),
+                    invoice_number=self._required(
+                        row, "invoice_number", "number", "invoice_no", "inv_no",
+                        "invoice_num", "invoice_id", "ref", "reference", "no",
+                    ),
+                    customer_name=self._required(
+                        row, "customer_name", "customer", "client", "client_name",
+                        "bill_to", "billed_to", "name", "buyer", "sold_to", "account",
+                    ),
+                    customer_email=self._optional(
+                        row, "customer_email", "email", "client_email", "bill_to_email",
+                    ),
                     currency_code=(
-                        self._optional(row, "currency_code", "currency") or "USD"
+                        self._optional(row, "currency_code", "currency", "curr", "ccy") or "USD"
                     ).upper(),
-                    total=self._decimal(row, "total", "amount"),
+                    total=self._decimal(
+                        row, "total", "amount", "total_amount", "grand_total",
+                        "invoice_total", "balance_due", "amount_due", "net_total",
+                    ),
                     status=status,
-                    issued_on=self._optional_date(row, "issued_on", "issue_date"),
-                    due_on=self._optional_date(row, "due_on", "due_date"),
+                    issued_on=self._optional_date(
+                        row, "issued_on", "issue_date", "invoice_date", "date",
+                        "created_date", "created_on",
+                    ),
+                    due_on=self._optional_date(
+                        row, "due_on", "due_date", "payment_due", "due", "payment_date",
+                    ),
                 )
             )
         return records

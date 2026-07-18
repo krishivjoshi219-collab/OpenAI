@@ -13,6 +13,7 @@ PAGES: dict[str, str] = {
     "Business Memory": "◒  Business Memory",
     "Government Assistant": "⌁  Government Assistant",
     "Settings": "⚙  Settings",
+    "View Code": "⟨/⟩  View Code",
 }
 
 

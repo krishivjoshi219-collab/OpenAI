@@ -98,7 +98,7 @@ def _render_import_flow() -> None:
     uploaded_file = st.file_uploader(
         "Upload a file",
         type=["csv", "xlsx", "pdf"],
-        help="CSV is supported now. PDF and XLSX are queued for a future extraction provider.",
+        help="CSV and PDF are supported. XLSX support is planned.",
     )
     if uploaded_file is not None and st.button("Review extracted information", type="primary"):
         _create_preview(kind, uploaded_file.name, uploaded_file.getvalue())

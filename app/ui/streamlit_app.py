@@ -7,6 +7,7 @@ from app.ui.components.pendo import inject_pendo
 from app.ui.components.styles import apply_global_styles
 from app.ui.pages import (
     business_memory,
+    code_viewer,
     customers,
     dashboard,
     government_assistant,
@@ -28,6 +29,7 @@ PAGE_RENDERERS = {
     "Business Memory": business_memory.render,
     "Government Assistant": government_assistant.render,
     "Settings": settings.render,
+    "View Code": code_viewer.render,
 }
 
 
