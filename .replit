@@ -23,13 +23,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "streamlit run app/ui/streamlit_app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PYTHONPATH=/home/runner/workspace streamlit run app/ui/streamlit_app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true"
+waitForPort = 5000
 
 [userenv]
 
@@ -37,3 +37,7 @@ outputType = "webview"
 APP_ENV = "development"
 LOG_LEVEL = "INFO"
 OPENAI_MODEL = "gpt-4.1-mini"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
