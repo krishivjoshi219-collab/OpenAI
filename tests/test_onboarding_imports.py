@@ -50,9 +50,19 @@ def test_confirmation_persists_reviewed_customer_records() -> None:
 
 
 def test_unsupported_file_is_never_silently_extracted() -> None:
-    """PDF and spreadsheet uploads remain explicit until a provider is installed."""
+    """Unsupported formats (e.g. xlsx) are rejected without silent data loss."""
+
+    preview = create_extraction_registry().extract(ImportKind.INVOICES, "invoices.xlsx", b"PK\x03\x04")
+
+    assert preview.is_supported is False
+    assert preview.records == []
+
+
+def test_corrupt_pdf_returns_explicit_warning() -> None:
+    """A truncated or corrupt PDF produces a clear warning rather than a crash."""
 
     preview = create_extraction_registry().extract(ImportKind.INVOICES, "invoice.pdf", b"%PDF")
 
     assert preview.is_supported is False
     assert preview.records == []
+    assert any("PDF" in w or "pdf" in w or "read" in w.lower() for w in preview.warnings)

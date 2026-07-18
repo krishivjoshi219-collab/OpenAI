@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import io
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -225,6 +226,107 @@ class CsvExtractionProvider:
             raise ValueError(f"Invalid ISO date for {names[0]}: {value}") from error
 
 
+class PdfExtractionProvider(CsvExtractionProvider):
+    """Extract onboarding records from PDF files that contain data tables.
+
+    Uses pdfplumber to locate the first readable table whose column headers
+    match the requested import kind.  Falls back to an explicit warning if
+    the PDF is corrupt, password-protected, or contains no parseable tables.
+    """
+
+    def supports(self, file_name: str) -> bool:
+        return file_name.lower().endswith(".pdf")
+
+    def extract(self, kind: ImportKind, file_name: str, content: bytes) -> ExtractionPreview:
+        try:
+            import pdfplumber  # type: ignore[import-untyped]
+        except ImportError:
+            return ExtractionPreview(
+                kind=kind,
+                file_name=file_name,
+                is_supported=False,
+                warnings=["pdfplumber is not installed. Run: pip install pdfplumber"],
+            )
+
+        try:
+            rows = self._extract_rows_from_pdf(pdfplumber, content)
+        except Exception as exc:  # noqa: BLE001
+            return ExtractionPreview(
+                kind=kind,
+                file_name=file_name,
+                is_supported=False,
+                warnings=[
+                    f"Could not read PDF: {exc}. "
+                    "Ensure the file is not password-protected or corrupted."
+                ],
+            )
+
+        if not rows:
+            return ExtractionPreview(
+                kind=kind,
+                file_name=file_name,
+                is_supported=False,
+                warnings=[
+                    "No data table found in the PDF. "
+                    "Export a table (not a scanned image) so the columns can be read."
+                ],
+            )
+
+        try:
+            parser_map = {
+                ImportKind.CUSTOMERS: self._parse_customers,
+                ImportKind.PRODUCTS:  self._parse_products,
+                ImportKind.STOCK:     self._parse_stock,
+                ImportKind.INVOICES:  self._parse_invoices,
+            }
+            records = parser_map[kind](rows)
+        except (ValueError, KeyError) as exc:
+            return ExtractionPreview(
+                kind=kind,
+                file_name=file_name,
+                is_supported=False,
+                warnings=[
+                    f"Table found but column mapping failed: {exc}. "
+                    "Check that the PDF table has the expected column headers."
+                ],
+            )
+
+        return ExtractionPreview(kind=kind, file_name=file_name, records=records)
+
+    # ------------------------------------------------------------------
+    # PDF-specific helpers
+    # ------------------------------------------------------------------
+
+    def _extract_rows_from_pdf(self, pdfplumber: object, content: bytes) -> list[dict[str, str]]:
+        """Open PDF bytes and return normalised dict rows from the best table found."""
+        with pdfplumber.open(io.BytesIO(content)) as pdf:  # type: ignore[attr-defined]
+            # Collect all tables from all pages
+            all_tables: list[list[list[str | None]]] = []
+            for page in pdf.pages:
+                for table in page.extract_tables():
+                    if table and len(table) >= 2:  # header + at least one data row
+                        all_tables.append(table)
+
+        if not all_tables:
+            return []
+
+        # Use the largest table (most data rows) as the primary source
+        table = max(all_tables, key=len)
+        raw_headers = table[0]
+        headers = [self._normalize(str(h) if h is not None else "") for h in raw_headers]
+
+        rows: list[dict[str, str]] = []
+        for raw_row in table[1:]:
+            # Pad short rows to avoid index errors
+            padded = list(raw_row) + [None] * (len(headers) - len(raw_row))
+            row = {h: (str(v) if v is not None else "").strip() for h, v in zip(headers, padded)}
+            # Skip entirely blank rows
+            if any(row.values()):
+                rows.append(row)
+
+        return rows
+
+
 class UnsupportedFileProvider:
     """Return an explicit review result when no installed provider supports a file."""
 
@@ -264,4 +366,6 @@ class ExtractionProviderRegistry:
 def create_extraction_registry() -> ExtractionProviderRegistry:
     """Create the local onboarding extraction registry."""
 
-    return ExtractionProviderRegistry([CsvExtractionProvider(), UnsupportedFileProvider()])
+    return ExtractionProviderRegistry(
+        [CsvExtractionProvider(), PdfExtractionProvider(), UnsupportedFileProvider()]
+    )
