@@ -102,13 +102,14 @@ class CsvExtractionProvider:
         """Parse a CSV upload into reviewable, validated records."""
 
         rows = self._read_rows(content)
-        parsers: dict[ImportKind, list[ExtractedRecord]] = {
-            ImportKind.CUSTOMERS: self._parse_customers(rows),
-            ImportKind.PRODUCTS: self._parse_products(rows),
-            ImportKind.STOCK: self._parse_stock(rows),
-            ImportKind.INVOICES: self._parse_invoices(rows),
+        parser_map = {
+            ImportKind.CUSTOMERS: self._parse_customers,
+            ImportKind.PRODUCTS:  self._parse_products,
+            ImportKind.STOCK:     self._parse_stock,
+            ImportKind.INVOICES:  self._parse_invoices,
         }
-        return ExtractionPreview(kind=kind, file_name=file_name, records=parsers[kind])
+        records = parser_map[kind](rows)
+        return ExtractionPreview(kind=kind, file_name=file_name, records=records)
 
     def _read_rows(self, content: bytes) -> list[dict[str, str]]:
         text = content.decode("utf-8-sig")
