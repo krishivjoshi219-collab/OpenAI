@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from app import pendo
 from app.services.government import (
     GovernmentAssistantService,
     GovernmentGuidance,
@@ -52,7 +53,7 @@ def render() -> None:
             sells_goods_or_services = st.checkbox("I will sell goods or services")
         submitted = st.form_submit_button("Generate preparation checklist", type="primary")
     if submitted:
-        st.session_state["government_guidance"] = GovernmentAssistantService().generate_guidance(
+        guidance = GovernmentAssistantService().generate_guidance(
             GovernmentGuidanceRequest(
                 jurisdiction=jurisdiction,
                 business_structure=structure or None,
@@ -60,6 +61,24 @@ def render() -> None:
                 has_employees=has_employees,
                 sells_goods_or_services=sells_goods_or_services,
             )
+        )
+        st.session_state["government_guidance"] = guidance
+        pendo.track(
+            "government_guidance_generated",
+            properties={
+                "jurisdiction": jurisdiction.value,
+                "business_structure": structure or "",
+                "location": location or "",
+                "has_employees": has_employees,
+                "sells_goods_or_services": sells_goods_or_services,
+                "checklist_item_count": len(guidance.checklist),
+                "required_document_count": len(
+                    guidance.required_documents
+                ),
+                "official_source_count": len(
+                    guidance.official_sources
+                ),
+            },
         )
     guidance = st.session_state.get("government_guidance")
     if isinstance(guidance, GovernmentGuidance):

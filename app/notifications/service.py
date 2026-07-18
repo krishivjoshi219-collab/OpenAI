@@ -6,6 +6,7 @@ import logging
 from dataclasses import asdict
 from typing import Iterable
 
+from app import pendo
 from app.notifications.contracts import (
     ApprovalRequest,
     DailySummary,
@@ -127,4 +128,14 @@ class NotificationService:
                     )
             deliveries.append(receipt)
             self._logger.info("business_notification %s", asdict(receipt))
+        pendo.track(
+            "notification_dispatched",
+            properties={
+                "notification_kind": message.kind.value,
+                "target_count": len(deliveries),
+                "deliveries_sent": sum(1 for d in deliveries if d.status == "sent"),
+                "deliveries_failed": sum(1 for d in deliveries if d.status == "failed"),
+                "channels_used": ",".join(sorted({d.channel for d in deliveries})),
+            },
+        )
         return NotificationDispatch(message=message, deliveries=tuple(deliveries))

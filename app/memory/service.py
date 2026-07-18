@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app import pendo
 from app.models import Business, BusinessMemory
 from app.memory.contracts import CreateMemory, MemoryCategory, MemoryRecord, UpdateMemory
 from app.memory.repository import BusinessMemoryRepository
@@ -32,6 +33,18 @@ class BusinessMemoryService:
         )
         self._repository.add(memory)
         self._session.flush()
+        pendo.track(
+            "business_memory_created",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "memory_id": str(memory.id),
+                "category": data.category.value,
+                "source": data.source,
+                "has_attributes": data.attributes is not None,
+                "content_length": len(memory.content),
+            },
+        )
         return memory_to_record(memory)
 
     def get(self, business_id: UUID, memory_id: UUID) -> MemoryRecord | None:
@@ -74,8 +87,18 @@ class BusinessMemoryService:
     def delete(self, business_id: UUID, memory_id: UUID) -> None:
         """Delete one business-scoped memory."""
 
-        self._repository.delete(self._require_memory(business_id, memory_id))
+        memory = self._require_memory(business_id, memory_id)
+        self._repository.delete(memory)
         self._session.flush()
+        pendo.track(
+            "business_memory_deleted",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "memory_id": str(memory_id),
+                "category": memory.category,
+            },
+        )
 
     def remember_customer(
         self, business_id: UUID, content: str, attributes: dict[str, Any] | None = None

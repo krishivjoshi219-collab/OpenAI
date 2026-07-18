@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from app import pendo
 from app.ai.contracts import (
     ActionLogEntry,
     AIResult,
@@ -98,7 +99,21 @@ class AIService:
                 response, tool_calls, instructions, tools, structured_output
             )
             tool_calls = self._extract_tool_calls(response)
-        return self._to_result(response, state, command, tool_calls, structured_output, actions)
+        result = self._to_result(response, state, command, tool_calls, structured_output, actions)
+        pendo.track(
+            "ai_business_command_executed",
+            properties={
+                "agent_name": agent.name,
+                "model": self._model,
+                "outcome": (result.structured_output or {}).get("outcome", ""),
+                "tool_call_count": len(result.tool_calls),
+                "actions_completed": sum(1 for a in actions if a.status == "completed"),
+                "actions_failed": sum(1 for a in actions if a.status == "failed"),
+                "has_structured_output": result.structured_output is not None,
+                "conversation_message_count": len(result.conversation.messages),
+            },
+        )
+        return result
 
     def business_command(
         self,

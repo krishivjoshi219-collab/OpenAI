@@ -7,6 +7,7 @@ from uuid import UUID
 
 import streamlit as st
 
+from app import pendo
 from app.database.session import create_session_factory, session_scope
 from app.onboarding.extraction import ExtractionPreview, ImportKind, create_extraction_registry
 from app.onboarding.service import ImportConfirmation, OnboardingImportService
@@ -66,6 +67,16 @@ def _render_business_profile() -> None:
             with session_scope(create_session_factory()) as session:
                 business = OnboardingImportService(session).create_business(name, email, currency)
             st.session_state["onboarding_business_id"] = str(business.id)
+            pendo.track(
+                "business_workspace_created",
+                account_id=str(business.id),
+                properties={
+                    "business_id": str(business.id),
+                    "business_name": name.strip(),
+                    "currency_code": currency,
+                    "has_email": bool(email and email.strip()),
+                },
+            )
             st.rerun()
         except ValueError as error:
             st.error(str(error))
@@ -103,10 +114,27 @@ def _create_preview(kind: ImportKind, file_name: str, content: bytes) -> None:
     """Extract a file into an in-memory review result without persistence."""
 
     try:
-        st.session_state["onboarding_preview"] = create_extraction_registry().extract(
+        preview = create_extraction_registry().extract(
             kind, file_name, content
         )
+        st.session_state["onboarding_preview"] = preview
         st.session_state["onboarding_confirmation"] = None
+        bid = _business_id()
+        extension = (
+            file_name.rsplit(".", maxsplit=1)[-1] if "." in file_name else ""
+        )
+        pendo.track(
+            "onboarding_file_extracted",
+            account_id=str(bid) if bid else "system",
+            properties={
+                "import_kind": kind.value,
+                "file_name": file_name,
+                "file_extension": extension,
+                "record_count": len(preview.records),
+                "is_supported": preview.is_supported,
+                "warning_count": len(preview.warnings),
+            },
+        )
     except (UnicodeDecodeError, ValueError) as error:
         st.error(f"We could not read that file: {error}")
 
@@ -148,6 +176,19 @@ def _confirm_preview(preview: ExtractionPreview) -> None:
             confirmation = OnboardingImportService(session).confirm(business_id, preview)
         st.session_state["onboarding_confirmation"] = confirmation
         st.session_state["onboarding_preview"] = None
+        pendo.track(
+            "onboarding_import_confirmed",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "import_kind": preview.kind.value,
+                "file_name": preview.file_name,
+                "records_created": confirmation.created,
+                "records_updated": confirmation.updated,
+                "records_skipped": confirmation.skipped,
+                "message_count": len(confirmation.messages),
+            },
+        )
         st.rerun()
     except ValueError as error:
         st.error(str(error))
