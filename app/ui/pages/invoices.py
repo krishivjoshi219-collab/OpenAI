@@ -13,6 +13,7 @@ from app.models.business import Business
 from app.models.invoice import Invoice
 from app.models.enums import InvoiceStatus
 from app.services.invoice_image import InvoiceImageData, InvoiceImageRenderer, LineItemData
+from app.services.invoice_pdf import InvoicePdfRenderer
 from app.ui.components.layout import render_page_header
 from app.ui.components.widgets import render_empty_state
 
@@ -24,7 +25,8 @@ _STATUS_TONE: dict[str, str] = {
     "VOID":   "neutral",
 }
 
-_RENDERER = InvoiceImageRenderer()
+_RENDERER     = InvoiceImageRenderer()
+_PDF_RENDERER = InvoicePdfRenderer()
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +124,7 @@ def _render_invoice_row(
     due_str = inv.due_on.strftime("%d %b %Y") if inv.due_on else "No due date"
 
     with st.container():
-        col_info, col_jpg, col_avif = st.columns([5, 1, 1])
+        col_info, col_jpg, col_avif, col_pdf = st.columns([5, 1, 1, 1])
 
         with col_info:
             st.markdown(
@@ -151,6 +153,16 @@ def _render_invoice_row(
                 mime="image/avif",
                 use_container_width=True,
                 key=f"avif_{inv.id}",
+            )
+
+        with col_pdf:
+            st.download_button(
+                label="⬇ PDF",
+                data=_PDF_RENDERER.to_bytes(data),
+                file_name=f"invoice_{inv.invoice_number}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                key=f"pdf_{inv.id}",
             )
 
         st.divider()
