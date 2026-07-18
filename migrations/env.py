@@ -11,8 +11,17 @@ import app.models  # noqa: F401
 from app.database.base import Base
 from config.settings import get_settings
 
+def _normalize_url(url: str) -> str:
+    """Rewrite bare postgresql:// / postgres:// to use the psycopg (v3) driver."""
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+psycopg://", 1)
+    return url
+
+
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+config.set_main_option("sqlalchemy.url", _normalize_url(get_settings().database_url))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

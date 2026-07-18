@@ -10,10 +10,20 @@ from sqlalchemy.orm import Session, sessionmaker
 from config.settings import get_settings
 
 
+def _normalize_database_url(url: str) -> str:
+    """Ensure PostgreSQL URLs use the psycopg (v3) driver, not psycopg2."""
+
+    if url.startswith("postgresql://") or url.startswith("postgres://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1).replace(
+            "postgres://", "postgresql+psycopg://", 1
+        )
+    return url
+
+
 def create_engine_from_settings() -> Engine:
     """Build an engine for the configured PostgreSQL or SQLite database."""
 
-    database_url = get_settings().database_url
+    database_url = _normalize_database_url(get_settings().database_url)
     engine_options: dict[str, object] = {"pool_pre_ping": True}
     if database_url.startswith("sqlite"):
         engine_options["connect_args"] = {"check_same_thread": False}
