@@ -1,0 +1,32 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Local data and databases
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Editors and OS files
+.DS_Store
+.idea/
+.vscode/
+
