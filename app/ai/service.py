@@ -20,6 +20,11 @@ from app.ai.tools import ActionLogger, ToolRegistry
 from app.prompts.loader import render_prompt
 
 
+# Maximum number of model ↔ tool round-trips before the loop is aborted.
+# Raised from 4 to 8 so that multi-step business commands (e.g. search → create
+# invoice → add lines) have enough headroom without running forever.
+_MAX_TOOL_TURNS = 8
+
 DEFAULT_AGENT = AgentProfile(name="operations", prompt_name="business_command")
 BUSINESS_RESPONSE = StructuredOutputSpec(
     name="business_action_response",
@@ -162,7 +167,7 @@ class AIService:
         structured_output: StructuredOutputSpec | None,
     ) -> tuple[Any, tuple[ActionLogEntry, ...]]:
         actions: list[ActionLogEntry] = []
-        for _ in range(4):
+        for _ in range(_MAX_TOOL_TURNS):
             outputs = []
             for call in tool_calls:
                 try:
@@ -202,7 +207,9 @@ class AIService:
             tool_calls = self._extract_tool_calls(response)
             if not tool_calls:
                 return response, tuple(actions)
-        raise RuntimeError("Tool execution exceeded the maximum number of response turns.")
+        raise RuntimeError(
+            f"Tool execution exceeded the maximum of {_MAX_TOOL_TURNS} response turns."
+        )
 
     @staticmethod
     def _build_input(command: str, state: ConversationState) -> list[dict[str, str]]:
@@ -220,7 +227,12 @@ class AIService:
         for item in getattr(response, "output", []):
             if getattr(item, "type", None) != "function_call":
                 continue
-            arguments = json.loads(item.arguments)
+            try:
+                arguments = json.loads(item.arguments)
+            except (json.JSONDecodeError, TypeError) as exc:
+                raise ValueError(
+                    f"Tool {item.name} returned malformed JSON arguments: {exc}"
+                ) from exc
             if not isinstance(arguments, dict):
                 raise ValueError(f"Tool {item.name} returned non-object arguments.")
             calls.append(ToolCall(call_id=item.call_id, name=item.name, arguments=arguments))

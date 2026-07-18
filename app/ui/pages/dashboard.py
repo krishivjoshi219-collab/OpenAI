@@ -135,7 +135,11 @@ def _render_low_inventory(snapshot: DashboardSnapshot) -> None:
         for item in snapshot.low_inventory[:5]:
             st.markdown(f"**{item.product_name}** · `{item.sku}`")
             st.caption(f"{item.quantity_on_hand} on hand · reorder at {item.reorder_level}")
-            st.progress(min(float(item.quantity_on_hand / item.reorder_level), 1.0))
+            # Guard against reorder_level=0 to prevent ZeroDivisionError
+            if item.reorder_level > 0:
+                st.progress(min(float(item.quantity_on_hand / item.reorder_level), 1.0))
+            else:
+                st.progress(1.0)
             st.divider()
 
 
