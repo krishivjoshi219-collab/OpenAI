@@ -9,6 +9,8 @@ from typing import Any, Protocol, cast
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from app import pendo
+
 
 class OdooError(RuntimeError):
     """Raised when Odoo rejects or cannot complete an RPC request."""
@@ -245,6 +247,13 @@ class OdooInvoiceService:
         """Ask Odoo to open its configured send-and-print invoice workflow."""
 
         result = self._gateway.execute("account.move", "action_send_and_print", [[invoice_id]], {})
+        pendo.track(
+            "odoo_invoice_sent",
+            properties={
+                "invoice_id": invoice_id,
+                "odoo_action_result": str(result)[:200],
+            },
+        )
         return {"id": invoice_id, "odoo_action": result, "status": "requested"}
 
 

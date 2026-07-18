@@ -8,6 +8,7 @@ from uuid import UUID
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from app import pendo
 from app.business.commands import (
     CreateCustomer,
     CreateInvoice,
@@ -56,6 +57,17 @@ class CustomerService(_BusinessScopedService):
         )
         self._session.add(customer)
         self._session.flush()
+        pendo.track(
+            "customer_created",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "customer_id": str(customer.id),
+                "has_email": email is not None,
+                "has_phone": customer.phone is not None,
+                "has_billing_address": customer.billing_address is not None,
+            },
+        )
         return customer
 
     def search(self, business_id: UUID, query: str, *, limit: int = 25) -> list[Customer]:
@@ -66,7 +78,18 @@ class CustomerService(_BusinessScopedService):
         if term := query.strip():
             pattern = f"%{term}%"
             statement = statement.where(or_(Customer.name.ilike(pattern), Customer.email.ilike(pattern)))
-        return list(self._session.scalars(statement.order_by(Customer.name).limit(limit)))
+        results = list(self._session.scalars(statement.order_by(Customer.name).limit(limit)))
+        pendo.track(
+            "customer_search_executed",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "query": query.strip()[:100],
+                "result_count": len(results),
+                "limit": limit,
+            },
+        )
+        return results
 
 
 class ProductService(_BusinessScopedService):
@@ -96,6 +119,19 @@ class ProductService(_BusinessScopedService):
         )
         self._session.add(product)
         self._session.flush()
+        pendo.track(
+            "product_created",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "product_id": str(product.id),
+                "sku": sku,
+                "has_cost_price": command.cost_price is not None,
+                "has_supplier": command.supplier_id is not None,
+                "has_description": product.description is not None,
+                "unit_price": str(product.unit_price),
+            },
+        )
         return product
 
     def search(self, business_id: UUID, query: str, *, limit: int = 25) -> list[Product]:
@@ -106,7 +142,18 @@ class ProductService(_BusinessScopedService):
         if term := query.strip():
             pattern = f"%{term}%"
             statement = statement.where(or_(Product.name.ilike(pattern), Product.sku.ilike(pattern)))
-        return list(self._session.scalars(statement.order_by(Product.name).limit(limit)))
+        results = list(self._session.scalars(statement.order_by(Product.name).limit(limit)))
+        pendo.track(
+            "product_search_executed",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "query": query.strip()[:100],
+                "result_count": len(results),
+                "limit": limit,
+            },
+        )
+        return results
 
     def _find_by_sku(self, business_id: UUID, sku: str) -> Product | None:
         return self._session.scalar(
@@ -156,6 +203,22 @@ class InvoiceService(_BusinessScopedService):
         invoice.tax_total = _money(invoice.total - invoice.subtotal)
         self._session.add(invoice)
         self._session.flush()
+        pendo.track(
+            "invoice_created",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "invoice_id": str(invoice.id),
+                "invoice_number": invoice_number,
+                "customer_id": str(command.customer_id),
+                "status": command.status.value,
+                "currency_code": currency,
+                "subtotal": str(invoice.subtotal),
+                "tax_total": str(invoice.tax_total),
+                "total": str(invoice.total),
+                "line_count": len(invoice.items),
+            },
+        )
         return invoice
 
     def _create_line(self, business_id: UUID, position: int, command: CreateInvoiceLine) -> InvoiceItem:
@@ -211,6 +274,7 @@ class InventoryService(_BusinessScopedService):
                 Inventory.product_id == product.id,
             )
         )
+        is_new = inventory is None
         if inventory is None:
             inventory = Inventory(
                 business_id=business_id,
@@ -224,6 +288,20 @@ class InventoryService(_BusinessScopedService):
             if command.reorder_level is not None:
                 inventory.reorder_level = command.reorder_level
         self._session.flush()
+        pendo.track(
+            "inventory_updated",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "product_id": str(product.id),
+                "quantity_on_hand": str(command.quantity_on_hand),
+                "reorder_level": str(inventory.reorder_level),
+                "is_new_record": is_new,
+                "is_below_reorder_level": (
+                    command.quantity_on_hand < inventory.reorder_level
+                ),
+            },
+        )
         return inventory
 
 
@@ -242,6 +320,16 @@ class ReminderService(_BusinessScopedService):
         )
         self._session.add(reminder)
         self._session.flush()
+        pendo.track(
+            "reminder_created",
+            account_id=str(business_id),
+            properties={
+                "business_id": str(business_id),
+                "reminder_id": str(reminder.id),
+                "has_details": reminder.details is not None,
+                "has_due_date": command.due_at is not None,
+            },
+        )
         return reminder
 
 
