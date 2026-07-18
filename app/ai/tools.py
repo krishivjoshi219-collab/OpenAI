@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+import logging
+from dataclasses import asdict, dataclass
+from typing import Any, Callable
 
-from app.ai.contracts import ToolDefinition, ToolHandler
+from app.ai.contracts import ActionLogEntry, ToolDefinition, ToolHandler
 
 
 @dataclass(frozen=True)
@@ -12,7 +15,7 @@ class RegisteredTool:
     """Pair a model-visible declaration with its application-side handler."""
 
     definition: ToolDefinition
-    handler: ToolHandler
+    handler: ToolHandler | Callable[[dict[str, Any]], dict[str, Any]]
 
 
 class ToolRegistry:
@@ -21,7 +24,11 @@ class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str, RegisteredTool] = {}
 
-    def register(self, definition: ToolDefinition, handler: ToolHandler) -> None:
+    def register(
+        self,
+        definition: ToolDefinition,
+        handler: ToolHandler | Callable[[dict[str, Any]], dict[str, Any]],
+    ) -> None:
         """Register a unique tool declaration and executor."""
 
         if definition.name in self._tools:
@@ -43,3 +50,15 @@ class ToolRegistry:
         except KeyError as error:
             raise ValueError(f"The model requested an unavailable tool: {name}") from error
         return tool.handler(arguments)
+
+
+class ActionLogger:
+    """Emit one JSON application-log event for every attempted AI action."""
+
+    def __init__(self, logger: logging.Logger | None = None) -> None:
+        self._logger = logger or logging.getLogger("app.ai.actions")
+
+    def log(self, entry: ActionLogEntry) -> None:
+        """Write an audit-safe structured event to the application's normal logs."""
+
+        self._logger.info("ai_business_action %s", json.dumps(asdict(entry), default=str))

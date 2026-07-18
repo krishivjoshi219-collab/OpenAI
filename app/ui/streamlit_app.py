@@ -8,6 +8,7 @@ from app.ui.pages import (
     business_memory,
     customers,
     dashboard,
+    government_assistant,
     home,
     invoices,
     onboarding,
@@ -24,6 +25,7 @@ PAGE_RENDERERS = {
     "Products": products.render,
     "Invoices": invoices.render,
     "Business Memory": business_memory.render,
+    "Government Assistant": government_assistant.render,
     "Settings": settings.render,
 }
 

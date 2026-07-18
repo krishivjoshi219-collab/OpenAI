@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from app.ai.contracts import (
+    ActionLogEntry,
     AIResult,
     AgentProfile,
     ConversationMessage,
@@ -14,11 +15,41 @@ from app.ai.contracts import (
     StructuredOutputSpec,
     ToolCall,
 )
-from app.ai.tools import ToolRegistry
+from app.ai.tools import ActionLogger, ToolRegistry
 from app.prompts.loader import render_prompt
 
 
 DEFAULT_AGENT = AgentProfile(name="operations", prompt_name="business_command")
+BUSINESS_RESPONSE = StructuredOutputSpec(
+    name="business_action_response",
+    description="The user-facing result of one business request.",
+    schema={
+        "type": "object",
+        "properties": {
+            "summary": {"type": "string"},
+            "outcome": {
+                "type": "string",
+                "enum": ["completed", "needs_input", "failed", "no_action"],
+            },
+            "actions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "tool_name": {"type": "string"},
+                        "reason": {"type": "string"},
+                        "status": {"type": "string", "enum": ["completed", "failed"]},
+                    },
+                    "required": ["tool_name", "reason", "status"],
+                    "additionalProperties": False,
+                },
+            },
+            "next_steps": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["summary", "outcome", "actions", "next_steps"],
+        "additionalProperties": False,
+    },
+)
 
 
 class AIService:
@@ -29,10 +60,12 @@ class AIService:
         client: ResponsesClient,
         model: str,
         tool_registry: ToolRegistry | None = None,
+        action_logger: ActionLogger | None = None,
     ) -> None:
         self._client = client
         self._model = model
         self._tool_registry = tool_registry or ToolRegistry()
+        self._action_logger = action_logger or ActionLogger()
 
     def command(
         self,
@@ -59,12 +92,30 @@ class AIService:
             structured_output,
         )
         tool_calls = self._extract_tool_calls(response)
+        actions: tuple[ActionLogEntry, ...] = ()
         if execute_tools and tool_calls:
-            response = self._run_tool_loop(
+            response, actions = self._run_tool_loop(
                 response, tool_calls, instructions, tools, structured_output
             )
             tool_calls = self._extract_tool_calls(response)
-        return self._to_result(response, state, command, tool_calls, structured_output)
+        return self._to_result(response, state, command, tool_calls, structured_output, actions)
+
+    def business_command(
+        self,
+        command: str,
+        *,
+        conversation: ConversationState | None = None,
+        business_context: str = "",
+    ) -> AIResult:
+        """Execute a business request and return the standard strict JSON result."""
+
+        return self.command(
+            command,
+            conversation=conversation,
+            business_context=business_context,
+            structured_output=BUSINESS_RESPONSE,
+            execute_tools=True,
+        )
 
     def _create_response(
         self,
@@ -94,16 +145,34 @@ class AIService:
         instructions: str,
         tools: list[Any],
         structured_output: StructuredOutputSpec | None,
-    ) -> Any:
+    ) -> tuple[Any, tuple[ActionLogEntry, ...]]:
+        actions: list[ActionLogEntry] = []
         for _ in range(4):
-            outputs = [
-                {
-                    "type": "function_call_output",
-                    "call_id": call.call_id,
-                    "output": json.dumps(self._tool_registry.execute(call.name, call.arguments)),
-                }
-                for call in tool_calls
-            ]
+            outputs = []
+            for call in tool_calls:
+                try:
+                    output = self._tool_registry.execute(call.name, call.arguments)
+                    status = "completed"
+                except Exception as error:  # Return a tool error so the model can recover safely.
+                    output = {"status": "failed", "error": str(error)}
+                    status = "failed"
+                entry = ActionLogEntry(
+                    call_id=call.call_id,
+                    tool_name=call.name,
+                    reason=str(call.arguments.get("reason", "No reason supplied by model.")),
+                    arguments=call.arguments,
+                    status=status,
+                    output=output,
+                )
+                actions.append(entry)
+                self._action_logger.log(entry)
+                outputs.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": call.call_id,
+                        "output": json.dumps(output, default=str),
+                    }
+                )
             request: dict[str, Any] = {
                 "model": self._model,
                 "instructions": instructions,
@@ -117,7 +186,7 @@ class AIService:
             response = self._client.responses.create(**request)
             tool_calls = self._extract_tool_calls(response)
             if not tool_calls:
-                return response
+                return response, tuple(actions)
         raise RuntimeError("Tool execution exceeded the maximum number of response turns.")
 
     @staticmethod
@@ -149,6 +218,7 @@ class AIService:
         command: str,
         tool_calls: tuple[ToolCall, ...],
         structured_output: StructuredOutputSpec | None,
+        actions: tuple[ActionLogEntry, ...],
     ) -> AIResult:
         text = getattr(response, "output_text", "")
         parsed = json.loads(text) if structured_output is not None and text else None
@@ -162,4 +232,5 @@ class AIService:
             conversation=conversation,
             tool_calls=tool_calls,
             structured_output=parsed,
+            actions=actions,
         )

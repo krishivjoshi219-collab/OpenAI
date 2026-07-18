@@ -44,6 +44,10 @@ def apply_global_styles() -> None:
         .metric-value { color: var(--ink); font-size: 1.65rem; font-weight: 800; letter-spacing: -.065em; margin: .3rem 0; }
         .metric-change { color: var(--forest); font: 500 .72rem 'DM Mono', monospace; }
         .metric-change.neutral { color: var(--muted); }
+        [data-testid="stMetric"] { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 1.05rem 1.15rem; }
+        [data-testid="stMetricLabel"] { color: var(--muted); font-size: .76rem; font-weight: 700; }
+        [data-testid="stMetricValue"] { color: var(--ink); font-size: 1.55rem; font-weight: 800; letter-spacing: -.055em; }
+        [data-testid="stVerticalBlockBorderWrapper"] { border-color: var(--line) !important; border-radius: 18px !important; background: rgba(255,255,255,.72); }
         .action-card { background: var(--forest); color: white; border-radius: 18px; padding: 1.45rem; }
         .action-card h3 { font-size: 1.15rem; letter-spacing: -.04em; margin: 0 0 .5rem; }
         .action-card p { color: #cfe7dc; font-size: .86rem; line-height: 1.55; margin: 0; }

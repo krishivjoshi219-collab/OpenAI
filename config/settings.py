@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini"
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
+    odoo_url: str | None = None
+    odoo_database: str | None = None
+    odoo_username: str | None = None
+    odoo_api_key: str | None = None
 
 
 @lru_cache
@@ -24,4 +28,3 @@ def get_settings() -> Settings:
     """Return the process-wide settings instance."""
 
     return Settings()
-

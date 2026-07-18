@@ -30,3 +30,5 @@ uploads/
 .idea/
 .vscode/
 
+key.json
+.aider*

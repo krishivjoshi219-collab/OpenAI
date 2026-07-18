@@ -47,6 +47,24 @@ Dependencies flow inward: UI and routers call services; services coordinate AI, 
 
 The initial schema contains business-scoped customers, suppliers, products, invoices and invoice items, inventory, durable business memory, and per-business settings. Every entity has a UUID primary key and audit timestamps. Database access goes through the generic `Repository[T]`, while callers own the transaction via `session_scope`.
 
+## AI-to-business tool calling
+
+`create_business_ai_service(engine, business_id)` connects the OpenAI Responses API to a single, already-scoped `BusinessEngine`. The model sees JSON-schema function tools, chooses the appropriate business operation, and includes a short `reason` with every call. The adapter validates and converts JSON input to typed domain commands, then returns JSON-safe records to the model.
+
+Call `AIService.business_command(...)` to permit execution and require the standard strict JSON response (`summary`, `outcome`, `actions`, and `next_steps`). Its `AIResult` contains that parsed `structured_output` plus `actions`: one structured audit entry per attempted tool call (`tool_name`, `reason`, arguments, status, and output). The same events are emitted as JSON application log records named `ai_business_action`, including failures, so they can be forwarded to a central log store.
+
+## Notifications
+
+`NotificationService` sends daily summaries, invoice reminders, low-inventory alerts, and approval requests through a channel-neutral contract. `TelegramNotificationChannel` is the initial adapter; email, WhatsApp, Slack, and SMS can implement the same `NotificationChannel` protocol without changing business notification use cases. `create_notification_service()` uses `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` to configure the default Telegram route. Every delivery returns a structured receipt and is logged as a `business_notification` event.
+
+## Government Assistant
+
+The Government Assistant produces structured preparation checklists, document lists, business-registration guidance, and tax-registration guidance for India and the United States. It is deliberately informational rather than legal advice: every response states its uncertainty, includes a non-advice disclaimer, and links to first-party government sources for verification.
+
+## Odoo integration
+
+`create_odoo_ai_service()` uses Odoo JSON-RPC and the `ODOO_URL`, `ODOO_DATABASE`, `ODOO_USERNAME`, and `ODOO_API_KEY` environment variables. Its dedicated OpenAI tool allowlist supports customer creation/search, draft invoice creation, inventory-count updates, invoice send-and-print requests, and Odoo scheduled activities. Use `service.command(..., agent=ODOO_AGENT, execute_tools=True)` (or provide the equivalent agent profile) so only the Odoo tools are exposed.
+
 ## Database migrations
 
 Alembic includes the initial schema revision. Apply it with:

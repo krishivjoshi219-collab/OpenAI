@@ -11,6 +11,7 @@ PAGES: dict[str, str] = {
     "Products": "◇  Products",
     "Invoices": "▤  Invoices",
     "Business Memory": "◒  Business Memory",
+    "Government Assistant": "⌁  Government Assistant",
     "Settings": "⚙  Settings",
 }
 

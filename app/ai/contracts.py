@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
 
@@ -62,6 +62,18 @@ class ToolCall:
     arguments: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class ActionLogEntry:
+    """An auditable record of one tool invocation requested by the model."""
+
+    call_id: str
+    tool_name: str
+    reason: str
+    arguments: dict[str, Any]
+    status: Literal["completed", "failed"]
+    output: dict[str, Any]
+
+
 class ToolHandler(Protocol):
     """Executes one validated application tool call."""
 
@@ -97,7 +109,7 @@ class AgentProfile:
 
     name: str
     prompt_name: str
-    tool_names: frozenset[str] = field(default_factory=frozenset)
+    tool_names: frozenset[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -108,9 +120,12 @@ class AIResult:
     conversation: ConversationState
     tool_calls: tuple[ToolCall, ...] = ()
     structured_output: dict[str, Any] | None = None
+    actions: tuple[ActionLogEntry, ...] = ()
 
 
 class ResponsesClient(Protocol):
     """Minimal OpenAI SDK surface needed by the application service."""
 
-    responses: Any
+    @property
+    def responses(self) -> Any:
+        """Expose the Responses API resource."""

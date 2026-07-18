@@ -1,10 +1,13 @@
 """Tests for the OpenAI-independent AI service orchestration layer."""
 
+import json
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Any
 
-from app.ai.contracts import ConversationMessage, ConversationState, StructuredOutputSpec
+from app.ai.contracts import ConversationMessage, ConversationState, StructuredOutputSpec, ToolDefinition
 from app.ai.service import AIService
+from app.ai.tools import ToolRegistry
 
 
 @dataclass
@@ -61,3 +64,55 @@ def test_continued_conversation_does_not_replay_local_history() -> None:
     request = client.responses.requests[0]
     assert request["previous_response_id"] == "resp_1"
     assert request["input"] == [{"role": "user", "content": "Follow up"}]
+
+
+def test_tool_execution_returns_structured_audit_entries() -> None:
+    """Every executed model action is returned and sent back as JSON tool output."""
+
+    first = _FakeResponse(
+        id="resp_1",
+        output_text="",
+        output=[
+            SimpleNamespace(
+                type="function_call",
+                call_id="call_1",
+                name="create_reminder",
+                arguments=(
+                    '{"title":"Call Ada","reason":"The user asked for a follow-up."}'
+                ),
+            )
+        ],
+    )
+    second = _FakeResponse(id="resp_2", output_text="Reminder created.", output=[])
+
+    class SequenceResponses:
+        def __init__(self) -> None:
+            self.requests: list[dict[str, Any]] = []
+            self._responses = [first, second]
+
+        def create(self, **request: Any) -> _FakeResponse:
+            self.requests.append(request)
+            return self._responses.pop(0)
+
+    registry = ToolRegistry()
+    registry.register(
+        ToolDefinition("create_reminder", "Create a reminder.", {"type": "object"}),
+        lambda arguments: {
+            "status": "completed",
+            "id": "rem_1",
+            "title": arguments["title"],
+        },
+    )
+    client = SimpleNamespace(responses=SequenceResponses())
+
+    result = AIService(client, "test-model", tool_registry=registry).command(
+        "Remind me to call Ada", execute_tools=True
+    )
+
+    assert result.text == "Reminder created."
+    assert result.actions[0].tool_name == "create_reminder"
+    assert result.actions[0].reason == "The user asked for a follow-up."
+    assert result.actions[0].status == "completed"
+    assert client.responses.requests[0]["tools"][0]["name"] == "create_reminder"
+    output = client.responses.requests[1]["input"][0]["output"]
+    assert json.loads(output)["id"] == "rem_1"
