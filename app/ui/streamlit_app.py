@@ -3,6 +3,7 @@
 import streamlit as st
 
 from app.ui.components.layout import render_sidebar
+from app.ui.components.pendo import inject_pendo
 from app.ui.components.styles import apply_global_styles
 from app.ui.pages import (
     business_memory,
@@ -40,6 +41,7 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
     apply_global_styles()
+    inject_pendo()
     selected_page = render_sidebar()
     PAGE_RENDERERS[selected_page]()
 
