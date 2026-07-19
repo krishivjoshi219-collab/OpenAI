@@ -20,6 +20,8 @@ from app.ui.components.voice_input import render_voice_input
 def render() -> None:
     """Render government-registration guidance with prominent limitations."""
 
+    st.session_state.setdefault("government_guidance", None)
+
     render_page_header(
         "Government assistant",
         "Prepare your next registration step.",
@@ -82,36 +84,82 @@ def render() -> None:
             sells_goods_or_services = st.checkbox("I will sell goods or services")
         submitted = st.form_submit_button("Generate preparation checklist", type="primary")
     if submitted:
-        guidance = GovernmentAssistantService().generate_guidance(
-            GovernmentGuidanceRequest(
-                jurisdiction=jurisdiction,
-                business_structure=structure or None,
-                location=location or None,
-                has_employees=has_employees,
-                sells_goods_or_services=sells_goods_or_services,
+        try:
+            guidance = GovernmentAssistantService().generate_guidance(
+                GovernmentGuidanceRequest(
+                    jurisdiction=jurisdiction,
+                    business_structure=structure or None,
+                    location=location or None,
+                    has_employees=has_employees,
+                    sells_goods_or_services=sells_goods_or_services,
+                )
             )
-        )
-        st.session_state["government_guidance_data"] = guidance
-        pendo.track(
-            "government_guidance_generated",
-            properties={
-                "jurisdiction": jurisdiction.value,
-                "business_structure": structure or "",
-                "location": location or "",
-                "has_employees": has_employees,
-                "sells_goods_or_services": sells_goods_or_services,
-                "checklist_item_count": len(guidance.checklist),
-                "required_document_count": len(
-                    guidance.required_documents
-                ),
-                "official_source_count": len(
-                    guidance.official_sources
-                ),
-            },
-        )
-    guidance = st.session_state.get("government_guidance_data")
+            st.session_state["government_guidance"] = guidance
+            pendo.track(
+                "government_guidance_generated",
+                properties={
+                    "jurisdiction": jurisdiction.value,
+                    "business_structure": structure or "",
+                    "location": location or "",
+                    "has_employees": has_employees,
+                    "sells_goods_or_services": sells_goods_or_services,
+                    "checklist_item_count": len(guidance.checklist),
+                    "required_document_count": len(
+                        guidance.required_documents
+                    ),
+                    "official_source_count": len(
+                        guidance.official_sources
+                    ),
+                },
+            )
+        except Exception as exc:
+            _render_fallback_guidance(jurisdiction, structure, location, str(exc))
+    guidance = st.session_state.get("government_guidance")
     if isinstance(guidance, GovernmentGuidance):
         _render_guidance(guidance)
+
+
+def _render_fallback_guidance(
+    jurisdiction: Jurisdiction,
+    structure: str | None,
+    location: str | None,
+    error: str,
+) -> None:
+    """Render structural fallback text when guidance generation fails."""
+
+    render_section_title("Preparation checklist")
+    st.warning(
+        f"Could not load live guidance right now ({error}). "
+        "Showing general structural steps instead."
+    )
+    structure = structure or "your proposed structure"
+    location = location or "your state / locality"
+    if jurisdiction is Jurisdiction.INDIA:
+        st.markdown(
+            f"**1. Choose and validate the business structure**\n\n"
+            f"Compare proprietorship, partnership, LLP, and company options for {structure} in {location}."
+        )
+        st.markdown(
+            "**2. Confirm the registration route**\n\n"
+            "Review the current MCA incorporation process and any state/local registrations."
+        )
+        st.markdown(
+            "**3. Assess Udyam and GST registration**\n\n"
+            "Check Udyam eligibility and GST applicability based on turnover and business model."
+        )
+    else:
+        st.markdown(
+            f"**1. Choose a structure and state of formation**\n\n"
+            f"Compare LLC, corporation, partnership, and other options for {structure} in {location}."
+        )
+        st.markdown(
+            "**2. Register with the appropriate state authority**\n\n"
+            "Check the Secretary of State or equivalent agency where the business operates."
+        )
+        st.markdown(
+            "**3. Confirm local licences, permits, and federal tax steps**\n\n"
+            "Cities, counties, and industry regulators can require separate registrations."
+        )
 
 
 def _render_guidance(guidance: GovernmentGuidance) -> None:

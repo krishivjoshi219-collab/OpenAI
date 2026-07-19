@@ -46,6 +46,7 @@ def render() -> None:
     )
 
     st.session_state.setdefault("voice_history", [])
+    st.session_state.setdefault("voice_conversation", None)
 
     try:
         with session_scope(create_session_factory()) as session:
