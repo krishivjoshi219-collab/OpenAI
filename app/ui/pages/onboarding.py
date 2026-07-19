@@ -12,6 +12,7 @@ from app.database.session import create_session_factory, session_scope
 from app.onboarding.extraction import ExtractionPreview, ImportKind, create_extraction_registry
 from app.onboarding.service import ImportConfirmation, OnboardingImportService
 from app.ui.components.layout import render_page_header, render_section_title
+from app.ui.components.voice_input import render_voice_input
 
 
 def render() -> None:
@@ -50,10 +51,31 @@ def _render_business_profile() -> None:
 
     st.progress(25, text="Step 1 of 4 · Create your business workspace")
     render_section_title("Business profile")
+
+    # ── Voice pre-fill for business name ─────────────────────────────────
+    with st.expander("🎙 Say your business name instead of typing", expanded=False):
+        obrd_transcript = render_voice_input(
+            key="obrd_voice",
+            label="Record your business name",
+            help_text="Speak your business name in English or Hindi, then click the button below.",
+        )
+        if obrd_transcript:
+            if st.button(
+                "→ Use as business name",
+                key="obrd_fill_name",
+                use_container_width=False,
+            ):
+                st.session_state["obrd_biz_name"] = obrd_transcript
+                st.rerun()
+
     with st.form("business_profile"):
         left, right = st.columns(2, gap="large")
         with left:
-            name = st.text_input("Business name", placeholder="e.g. Northstar Studio")
+            name = st.text_input(
+                "Business name",
+                placeholder="e.g. Northstar Studio",
+                key="obrd_biz_name",
+            )
             email = st.text_input("Primary contact email", placeholder="you@company.com")
         with right:
             currency = st.selectbox("Operating currency", ["USD", "EUR", "INR"])

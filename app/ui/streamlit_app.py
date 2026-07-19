@@ -16,6 +16,7 @@ from app.ui.pages import (
     onboarding,
     products,
     settings,
+    voice_commands,
 )
 
 
@@ -28,6 +29,7 @@ PAGE_RENDERERS = {
     "Invoices": invoices.render,
     "Business Memory": business_memory.render,
     "Government Assistant": government_assistant.render,
+    "Voice Commands": voice_commands.render,
     "Settings": settings.render,
     "View Code": code_viewer.render,
 }

@@ -72,6 +72,44 @@ def apply_global_styles() -> None:
         .stButton > button:hover { background: #0b4939; color: white; border: 0; }
         .stTextInput input, .stTextArea textarea, .stSelectbox > div > div { border-radius: 10px; border-color: var(--line); }
         @media (max-width: 900px) { .block-container { padding: 1.5rem 1rem 3rem; } }
+
+        /* ── Voice command styles ────────────────────────────────────────── */
+        .voice-transcript {
+            background: var(--mint);
+            border: 1px solid #a3e8c3;
+            border-radius: 12px;
+            padding: .75rem 1rem;
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--forest);
+            margin: .6rem 0 .5rem;
+            line-height: 1.5;
+        }
+        .voice-icon { margin-right: .4rem; }
+        .voice-examples { margin-top: .25rem; }
+        .voice-example-lang {
+            font: 700 .75rem 'DM Mono', monospace;
+            color: var(--muted);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin: .5rem 0 .35rem;
+        }
+        .voice-example-chip {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: .4rem .7rem;
+            font-size: .78rem;
+            color: var(--ink);
+            margin-bottom: .3rem;
+            line-height: 1.45;
+        }
+        .voice-fill-hint {
+            color: var(--muted);
+            font-size: .78rem;
+            margin: .25rem 0 .5rem;
+            font-style: italic;
+        }
         </style>
         """,
         unsafe_allow_html=True,

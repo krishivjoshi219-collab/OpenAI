@@ -14,6 +14,7 @@ from app.services.government import (
     Jurisdiction,
 )
 from app.ui.components.layout import render_page_header, render_section_title
+from app.ui.components.voice_input import render_voice_input
 
 
 def render() -> None:
@@ -27,6 +28,30 @@ def render() -> None:
     st.warning(
         "This tool provides general educational information only. Verify every requirement with the relevant authority and a qualified local professional before filing."
     )
+
+    # ── Voice pre-fill ────────────────────────────────────────────────────
+    with st.expander("🎙 Fill form fields by voice", expanded=False):
+        gov_transcript = render_voice_input(
+            key="gov_voice",
+            label="Record to fill a form field",
+            help_text="Record once, then choose which field to populate.",
+        )
+        if gov_transcript:
+            st.markdown(
+                '<div class="voice-fill-hint">Choose a field to fill with the transcription above:</div>',
+                unsafe_allow_html=True,
+            )
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("→ Use as business structure", key="gov_fill_structure", use_container_width=True):
+                    st.session_state["gov_structure_input"] = gov_transcript
+                    st.rerun()
+            with col_b:
+                if st.button("→ Use as location", key="gov_fill_location", use_container_width=True):
+                    st.session_state["gov_location_input"] = gov_transcript
+                    st.rerun()
+
+    # ── Guidance form ─────────────────────────────────────────────────────
     with st.form("government_guidance"):
         jurisdiction = Jurisdiction(
             st.selectbox(
@@ -40,11 +65,15 @@ def render() -> None:
         left, right = st.columns(2)
         with left:
             structure = st.text_input(
-                "Proposed business structure", placeholder="e.g. LLC, partnership, proprietorship"
+                "Proposed business structure",
+                placeholder="e.g. LLC, partnership, proprietorship",
+                key="gov_structure_input",
             )
         with right:
             location = st.text_input(
-                "State / Union Territory / locality", placeholder="e.g. Karnataka or California"
+                "State / Union Territory / locality",
+                placeholder="e.g. Karnataka or California",
+                key="gov_location_input",
             )
         employees, sales = st.columns(2)
         with employees:
