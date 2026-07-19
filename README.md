@@ -27,12 +27,12 @@ A full-stack AI-powered business operations workspace built on Streamlit, OpenAI
 | Layer | Technology |
 |---|---|
 | Language | Python 3.12+ |
-| UI | Streamlit (port 5000) |
+| UI | Streamlit |
 | AI | OpenAI Responses API · Chat Completions adapter (Groq, Gemini) |
 | ORM / DB | SQLAlchemy 2 · Alembic · PostgreSQL (SQLite for tests) |
 | PDF generation | ReportLab |
 | PDF parsing | pdfplumber |
-| Image export | Pillow 12 (JPEG + AVIF native) |
+| Image export | Pillow (JPEG + AVIF) |
 | Config | Pydantic Settings |
 | Notifications | Telegram Bot API |
 
@@ -95,7 +95,7 @@ alembic upgrade head
 ### 4. Run
 
 ```bash
-PYTHONPATH=. streamlit run app/ui/streamlit_app.py --server.port 5000
+PYTHONPATH=. streamlit run app/ui/streamlit_app.py
 ```
 
 ---
@@ -137,7 +137,7 @@ The onboarding flow accepts **CSV** and **PDF** files for four import types:
 | Stock | `sku` / `product_code` · `quantity_on_hand` / `qty` / `stock` / `inventory` |
 | Invoices | `invoice_number` / `number` / `ref` · `customer_name` / `client` / `bill_to` · `total` / `amount` · optional date + status fields |
 
-**PDF extraction** uses `pdfplumber` to locate the largest table across all pages. Column headers are normalised (lowercase, underscores) and matched against an extensive alias list. Malformed or image-only PDFs return a clear warning rather than crashing.
+**PDF extraction** uses `pdfplumber` to locate the largest table across all pages. Column headers are normalised (lowercase, underscores) and matched against an extensive alias list. Missing customer names fall back to `"Default Customer"` so the review table always renders.
 
 A pre-save review screen shows all extracted records before anything is written to the database.
 
