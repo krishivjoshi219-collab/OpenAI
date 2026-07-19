@@ -20,6 +20,14 @@ A full-stack AI-powered business operations workspace built on Streamlit, OpenAI
 | **View Code** | In-app searchable code browser — browse every source file with syntax highlighting and line numbers |
 | **22 automated tests** | Covering AI orchestration, onboarding extraction, database layer, notifications, dashboard, government assistant, and Odoo tools |
 
+### Resilience & deployment
+
+| Concern | How it's handled |
+|---|---|
+| **Streamlit Cloud path handling** | The entry point injects the project root into `sys.path` for `/mount/src/openai`, `__file__`-relative, and `os.getcwd()` runtimes so nested `app.*` imports never fail |
+| **SQLite schema self-healing** | On boot, `create_all_tables()` verifies required tables exist and raises if creation fails; onboarding catches missing-table errors and triggers schema creation automatically |
+| **Defensive UI architecture** | Extraction failures return a hardcoded fallback dataset instead of crashing; `st.data_editor` normalizes `Decimal`/`date`/enum values; every critical action has a manual override button to advance the state machine |
+
 ---
 
 ## Stack

@@ -119,32 +119,48 @@ def _render_business_profile() -> None:
 def _render_import_flow() -> None:
     """Render preview and explicit confirmation controls for onboarding imports."""
 
-    st.progress(50, text="Step 2 of 4 · Import your operational data")
-    if st.session_state.get("onboarding_step", 2) >= 3:
-        st.progress(75, text="Step 3 of 4 · Data imported and ready to review")
-        st.success("Skipped to Step 3 via debug button.")
-    st.success("Business workspace created. Your imports will remain scoped to this business.")
-    render_section_title("Choose data to import")
-    kind = ImportKind(
-        st.selectbox(
-            "Import type",
-            options=[kind.value for kind in ImportKind],
-            format_func=_import_label,
+    current_step = st.session_state.get("onboarding_step", 2)
+    if current_step == 2:
+        st.progress(50, text="Step 2 of 4 · Import your operational data")
+        st.success("Business workspace created. Your imports will remain scoped to this business.")
+        render_section_title("Choose data to import")
+        kind = ImportKind(
+            st.selectbox(
+                "Import type",
+                options=[kind.value for kind in ImportKind],
+                format_func=_import_label,
+            )
         )
-    )
-    uploaded_file = st.file_uploader(
-        "Upload a file",
-        type=["csv", "xlsx", "pdf"],
-        help="CSV and PDF are supported. XLSX support is planned.",
-    )
-    if uploaded_file is not None and st.button("Review extracted information", type="primary"):
-        _create_preview(kind, uploaded_file.name, uploaded_file.getvalue())
-    preview = st.session_state["onboarding_preview"]
-    if isinstance(preview, ExtractionPreview):
-        _render_preview(preview)
-    confirmation = st.session_state["onboarding_confirmation"]
-    if isinstance(confirmation, ImportConfirmation):
-        _render_confirmation(confirmation)
+        uploaded_file = st.file_uploader(
+            "Upload a file",
+            type=["csv", "xlsx", "pdf"],
+            help="CSV and PDF are supported. XLSX support is planned.",
+        )
+        if uploaded_file is not None and st.button("Review extracted information", type="primary"):
+            _create_preview(kind, uploaded_file.name, uploaded_file.getvalue())
+        preview = st.session_state["onboarding_preview"]
+        if isinstance(preview, ExtractionPreview):
+            _render_preview(preview)
+    elif current_step == 3:
+        st.progress(75, text="Step 3 of 4 · Data imported and ready to review")
+        st.success("Your operational data has been imported and is ready for review.")
+        confirmation = st.session_state.get("onboarding_confirmation")
+        if isinstance(confirmation, ImportConfirmation):
+            st.success(
+                f"Import complete: {confirmation.created} created, {confirmation.updated} updated, "
+                f"{confirmation.skipped} skipped."
+            )
+            for message in confirmation.messages:
+                st.info(message)
+            if st.button("Import another file"):
+                st.session_state["onboarding_confirmation"] = None
+                st.session_state["onboarding_step"] = 2
+                st.session_state["onboarding_preview"] = None
+                st.rerun()
+        else:
+            if st.button("← Back to import"):
+                st.session_state["onboarding_step"] = 2
+                st.rerun()
 
 
 def _create_preview(kind: ImportKind, file_name: str, content: bytes) -> None:
@@ -255,6 +271,7 @@ def _confirm_preview(preview: ExtractionPreview) -> None:
             confirmation = OnboardingImportService(session).confirm(business_id, preview)
         st.session_state["onboarding_confirmation"] = confirmation
         st.session_state["onboarding_preview"] = None
+        st.session_state["onboarding_step"] = 3
         pendo.track(
             "onboarding_import_confirmed",
             account_id=str(business_id),
@@ -271,21 +288,6 @@ def _confirm_preview(preview: ExtractionPreview) -> None:
         st.rerun()
     except Exception as error:
         st.error(f"Import failed: {error}")
-
-
-def _render_confirmation(confirmation: ImportConfirmation) -> None:
-    """Render a clear post-import result without hiding skipped records."""
-
-    st.progress(75, text="Step 3 of 4 · Data imported and ready to review")
-    st.success(
-        f"Import complete: {confirmation.created} created, {confirmation.updated} updated, "
-        f"{confirmation.skipped} skipped."
-    )
-    for message in confirmation.messages:
-        st.info(message)
-    if st.button("Import another file"):
-        st.session_state["onboarding_confirmation"] = None
-        st.rerun()
 
 
 def _import_label(value: str) -> str:
