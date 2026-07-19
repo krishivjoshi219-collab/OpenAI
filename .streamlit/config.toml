@@ -3,6 +3,7 @@ showErrorDetails = "none"
 
 [client]
 showErrorDetails = "none"
+showSidebarNavigation = false
 
 [runner]
 magicEnabled = true
