@@ -205,8 +205,8 @@ class CsvExtractionProvider:
                         row, "invoice_number", "number", "invoice_no", "inv_no",
                         "invoice_num", "invoice_id", "ref", "reference", "no",
                     ),
-                    customer_name=self._required(
-                        row, "customer_name", "customer", "client", "client_name",
+                    customer_name=self._required_with_default(
+                        row, "Unknown Customer", "customer_name", "customer", "client", "client_name",
                         "bill_to", "billed_to", "name", "buyer", "sold_to", "account",
                     ),
                     customer_email=self._optional(
@@ -241,6 +241,11 @@ class CsvExtractionProvider:
         if value is None:
             raise ValueError(f"A required column value is missing: {names[0]}")
         return value
+
+    @staticmethod
+    def _required_with_default(row: dict[str, str], default: str, *names: str) -> str:
+        value = CsvExtractionProvider._optional(row, *names)
+        return value if value is not None else default
 
     @staticmethod
     def _optional(row: dict[str, str], *names: str) -> str | None:
