@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
-from datetime import datetime, timezone
-from typing import Iterable
+from collections.abc import Iterable
+from datetime import UTC, datetime
 
 from app import pendo
 from app.notifications.contracts import (
@@ -185,7 +184,7 @@ class NotificationService:
         self, message: NotificationMessage, targets: Iterable[NotificationTarget] | None
     ) -> NotificationDispatch:
         deliveries: list[DeliveryReceipt] = []
-        sent_at = datetime.now(timezone.utc).isoformat()
+        sent_at = datetime.now(UTC).isoformat()
         for target in tuple(targets) if targets is not None else self._default_targets:
             channel = self._channels.get(target.channel)
             if channel is None:

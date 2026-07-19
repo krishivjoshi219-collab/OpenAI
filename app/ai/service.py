@@ -8,8 +8,8 @@ from typing import Any
 from app import pendo
 from app.ai.contracts import (
     ActionLogEntry,
-    AIResult,
     AgentProfile,
+    AIResult,
     ConversationMessage,
     ConversationState,
     ResponsesClient,

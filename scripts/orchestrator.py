@@ -18,16 +18,15 @@ Transitions:
 
 from __future__ import annotations
 
-import ast
 import os
 import re
 import subprocess
 import sys
 import traceback
-from dataclasses import dataclass, field
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable, TypedDict
+from typing import TypedDict
 
 # ---------------------------------------------------------------------------
 # Global system state
@@ -627,7 +626,7 @@ def main() -> None:
 
     # If the argument is a file path, read its contents
     if os.path.isfile(raw_error_input):
-        with open(raw_error_input, "r", encoding="utf-8") as handle:
+        with open(raw_error_input, encoding="utf-8") as handle:
             raw_error_input = handle.read()
 
     final_state = run_orchestration(

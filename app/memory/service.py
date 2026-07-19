@@ -8,9 +8,9 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app import pendo
-from app.models import Business, BusinessMemory
 from app.memory.contracts import CreateMemory, MemoryCategory, MemoryRecord, UpdateMemory
 from app.memory.repository import BusinessMemoryRepository
+from app.models import Business, BusinessMemory
 
 
 class BusinessMemoryService:

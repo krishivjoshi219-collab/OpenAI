@@ -1,9 +1,9 @@
 """Enumerations persisted by the operations data model."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class InvoiceStatus(str, Enum):
+class InvoiceStatus(StrEnum):
     """Lifecycle states for customer invoices."""
 
     DRAFT = "draft"

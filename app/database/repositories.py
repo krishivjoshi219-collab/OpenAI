@@ -14,7 +14,7 @@ from app.database.base import Base
 ModelT = TypeVar("ModelT", bound=Base)
 
 
-class Repository(Generic[ModelT]):
+class Repository(Generic[ModelT]):  # noqa: UP046
     """Encapsulate basic persistence operations without owning transactions."""
 
     def __init__(self, session: Session, model_type: type[ModelT]) -> None:
@@ -39,7 +39,7 @@ class Repository(Generic[ModelT]):
             raise ValueError("offset must be zero or greater")
         if not 1 <= limit <= 1_000:
             raise ValueError("limit must be between 1 and 1000")
-        created_at = getattr(self._model_type, "created_at")
+        created_at = self._model_type.created_at
         statement = select(self._model_type).order_by(created_at).offset(offset).limit(limit)
         return self._session.scalars(statement).all()
 

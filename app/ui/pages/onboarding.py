@@ -223,7 +223,7 @@ def _render_preview(preview: ExtractionPreview) -> None:
                 row.setdefault("customer_name", "Default Customer")
         safe_records = _to_safe_records(records)
         try:
-            edited = st.data_editor(
+            _ = st.data_editor(
                 safe_records,
                 num_rows="dynamic",
                 width="stretch",
@@ -231,7 +231,6 @@ def _render_preview(preview: ExtractionPreview) -> None:
             )
         except Exception as exc:
             st.error(f"Preview render failed: {exc}")
-            edited = safe_records
         col_confirm, col_proceed, col_discard = st.columns([1, 1, 2])
         with col_confirm:
             if st.button("Confirm import", type="primary", width="stretch"):

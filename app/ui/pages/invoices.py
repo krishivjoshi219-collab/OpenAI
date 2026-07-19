@@ -10,13 +10,12 @@ from sqlalchemy.orm import joinedload
 
 from app.database.session import create_session_factory, session_scope
 from app.models.business import Business
-from app.models.invoice import Invoice
 from app.models.enums import InvoiceStatus
+from app.models.invoice import Invoice
 from app.services.invoice_image import InvoiceImageData, InvoiceImageRenderer, LineItemData
 from app.services.invoice_pdf import InvoicePdfRenderer
 from app.ui.components.layout import render_page_header
-from app.ui.components.widgets import render_empty_state, render_skeleton_card
-
+from app.ui.components.widgets import render_empty_state
 
 _STATUS_TONE: dict[str, str] = {
     "DRAFT":  "neutral",

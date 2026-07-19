@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from decimal import Decimal
-import re
 from uuid import UUID
 
 from sqlalchemy import select

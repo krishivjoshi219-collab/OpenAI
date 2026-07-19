@@ -12,7 +12,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from app import pendo
-from app.backend.circuit_breaker import CircuitBreaker, CircuitOpenError
+from app.backend.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
 

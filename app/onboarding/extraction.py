@@ -347,29 +347,14 @@ class PdfExtractionProvider(CsvExtractionProvider):
         return ExtractionPreview(kind=kind, file_name=file_name, records=records)
 
     def _fallback_preview(self, kind: ImportKind, file_name: str, warning: str) -> ExtractionPreview:
-        """Return a hardcoded fallback record so the onboarding UI never blocks."""
+        """Return an unsupported preview with a clear warning when the PDF cannot be read."""
 
-        if kind == ImportKind.INVOICES:
-            records = [
-                InvoiceRecord(
-                    invoice_number="FALLBACK-001",
-                    customer_name="Hackathon Tester",
-                    customer_email=None,
-                    currency_code="USD",
-                    total=Decimal("1500.0"),
-                    status=InvoiceStatus.DRAFT,
-                    issued_on=date(2026, 7, 19),
-                    due_on=None,
-                )
-            ]
-        else:
-            records = []
         return ExtractionPreview(
             kind=kind,
             file_name=file_name,
-            records=records,
+            records=[],
             warnings=[warning],
-            is_supported=True,
+            is_supported=False,
         )
 
     # ------------------------------------------------------------------
@@ -398,7 +383,7 @@ class PdfExtractionProvider(CsvExtractionProvider):
         for raw_row in table[1:]:
             # Pad short rows to avoid index errors
             padded = list(raw_row) + [None] * (len(headers) - len(raw_row))
-            row = {h: (str(v) if v is not None else "").strip() for h, v in zip(headers, padded)}
+            row = {h: (str(v) if v is not None else "").strip() for h, v in zip(headers, padded, strict=False)}
             # Skip entirely blank rows
             if any(row.values()):
                 rows.append(row)

@@ -7,7 +7,7 @@ from app.ai.contracts import (
     StructuredOutputSpec,
     ToolDefinition,
 )
-from app.ai.service import AIService, BUSINESS_RESPONSE
+from app.ai.service import BUSINESS_RESPONSE, AIService
 from app.ai.tools import ToolRegistry
 
 __all__ = [

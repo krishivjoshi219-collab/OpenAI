@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
@@ -281,12 +281,6 @@ class TelegramNotificationChannel:
         fields: dict[str, tuple[str, bytes, str]],
     ) -> dict[str, Any]:
         """POST multipart form data (for photo/document uploads)."""
-
-        try:
-            import httplib2  # type: ignore[import-untyped]
-            import uritemplate  # type: ignore[import-untyped]
-        except ImportError:
-            raise TelegramError("multipart upload requires httplib2 and uritemplate packages") from None
 
         try:
             import requests

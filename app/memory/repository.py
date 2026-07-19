@@ -8,8 +8,8 @@ from uuid import UUID
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
-from app.models import BusinessMemory
 from app.memory.contracts import MemoryCategory
+from app.models import BusinessMemory
 
 
 class BusinessMemoryRepository:

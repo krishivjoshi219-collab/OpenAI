@@ -12,7 +12,9 @@ from app.database.session import create_session_factory, session_scope
 from app.models import Business
 from app.services.dashboard import DashboardService, DashboardSnapshot
 from app.ui.components.layout import render_page_header, render_section_title
-from app.ui.components.widgets import render_empty_state, render_skeleton_metric, render_skeleton_card
+from app.ui.components.widgets import (
+    render_empty_state,
+)
 
 
 def render() -> None:
