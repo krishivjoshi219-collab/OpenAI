@@ -1,6 +1,12 @@
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+# Ensure the project root is importable as `app` on all runtimes,
+# including Streamlit Cloud where __file__ may resolve inside the container.
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, "../.."))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 """Streamlit entry point for the AI Operations Employee MVP."""
 
@@ -67,6 +73,22 @@ def _run_preflight_once() -> None:
         st.session_state["global_error"] = str(exc)
 
 
+def _init_database_once() -> None:
+    """Create all database tables if they do not already exist."""
+
+    if st.session_state.get("db_initialized"):
+        return
+
+    try:
+        from app.database.session import create_all_tables
+
+        create_all_tables()
+        st.session_state["db_initialized"] = True
+    except Exception as exc:  # noqa: BLE001
+        st.session_state["db_initialized"] = False
+        st.session_state["db_init_error"] = str(exc)
+
+
 def _handle_global_error(exc: Exception) -> None:
     """Display a user-friendly recovery message for unhandled exceptions."""
 
@@ -81,6 +103,7 @@ def main() -> None:
     """Configure and render the selected presentation-only workspace page."""
 
     try:
+        _init_database_once()
         _run_preflight_once()
 
         st.set_page_config(

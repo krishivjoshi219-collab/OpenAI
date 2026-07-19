@@ -33,5 +33,5 @@ def inject_pendo() -> None:
 </script>"""
 
     b64 = base64.b64encode(html.encode("utf-8")).decode("utf-8")
-    st.iframe(src=f"data:text/html;base64,{b64}", height=0)
+    st.iframe(src=f"data:text/html;base64,{b64}", height=1)
 
