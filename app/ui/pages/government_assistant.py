@@ -91,7 +91,7 @@ def render() -> None:
                 sells_goods_or_services=sells_goods_or_services,
             )
         )
-        st.session_state["government_guidance"] = guidance
+        st.session_state["government_guidance_data"] = guidance
         pendo.track(
             "government_guidance_generated",
             properties={
@@ -109,7 +109,7 @@ def render() -> None:
                 ),
             },
         )
-    guidance = st.session_state.get("government_guidance")
+    guidance = st.session_state.get("government_guidance_data")
     if isinstance(guidance, GovernmentGuidance):
         _render_guidance(guidance)
 
