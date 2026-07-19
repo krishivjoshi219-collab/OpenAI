@@ -48,28 +48,33 @@ def render_byok_section() -> None:
 
 
 def _show_warning_if_needed() -> None:
-    """Show warning callout and dialog when primary keys are missing or rate-limited."""
+    """Show warning callout and dialog when primary keys are missing or preflight failed."""
 
     settings = get_settings()
     provider = settings.ai_provider.lower()
 
     has_sidebar_key = False
     primary_missing = False
+    preflight_failed = False
+
     if provider == "openai":
         has_sidebar_key = bool(st.session_state.get("byok_openai_api_key"))
         primary_missing = not settings.openai_api_key and not has_sidebar_key
+        preflight_failed = bool(st.session_state.get("preflight_failed_openai"))
     elif provider == "groq":
         has_sidebar_key = bool(st.session_state.get("byok_groq_api_key"))
         primary_missing = not settings.groq_api_key and not has_sidebar_key
+        preflight_failed = bool(st.session_state.get("preflight_failed_groq"))
     elif provider == "gemini":
         has_sidebar_key = bool(st.session_state.get("byok_gemini_api_key"))
         primary_missing = not settings.gemini_api_key and not has_sidebar_key
+        preflight_failed = bool(st.session_state.get("preflight_failed_gemini"))
 
-    rate_limited = st.session_state.get("byok_rate_limit_error", False)
+    rate_limited = bool(st.session_state.get("byok_rate_limit_error", False))
     if rate_limited and has_sidebar_key:
         rate_limited = False
 
-    if primary_missing or rate_limited:
+    if primary_missing or rate_limited or preflight_failed:
         if rate_limited:
             st.session_state["byok_rate_limit_error"] = False
 

@@ -5,6 +5,7 @@ from app.backend.config import validate_settings, SettingsValidationError
 from app.backend.circuit_breaker import CircuitBreaker, CircuitOpenError
 from app.backend.health import HealthCheck, HealthStatus
 from app.backend.metrics import MetricsCollector, metrics
+from app.backend.preflight import PreflightResult, run_preflight_checks
 
 __all__ = [
     "configure_logging",
@@ -17,4 +18,6 @@ __all__ = [
     "HealthStatus",
     "MetricsCollector",
     "metrics",
+    "PreflightResult",
+    "run_preflight_checks",
 ]

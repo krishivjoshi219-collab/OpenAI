@@ -40,20 +40,61 @@ PAGE_RENDERERS = {
 }
 
 
+def _run_preflight_once() -> None:
+    """Execute async dependency health checks once per session and cache the result."""
+
+    if st.session_state.get("preflight_completed"):
+        return
+
+    try:
+        import asyncio
+
+        from app.backend.preflight import run_preflight_checks
+        from config.settings import get_settings
+
+        settings = get_settings()
+        results = asyncio.run(run_preflight_checks(settings, total_timeout_ms=3000))
+
+        for name, result in results.items():
+            st.session_state[f"preflight_result_{name}"] = result
+            if not result.ok:
+                st.session_state[f"preflight_failed_{name}"] = True
+
+        st.session_state["preflight_completed"] = True
+    except Exception as exc:  # noqa: BLE001
+        st.session_state["preflight_completed"] = True
+        st.session_state["global_error"] = str(exc)
+
+
+def _handle_global_error(exc: Exception) -> None:
+    """Display a user-friendly recovery message for unhandled exceptions."""
+
+    st.session_state["global_error"] = str(exc)
+    st.error(
+        "Sorry, a minor system conflict occurred. "
+        "Aster Ops automated recovery tools are deploying a live container hotfix now..."
+    )
+
+
 def main() -> None:
     """Configure and render the selected presentation-only workspace page."""
 
-    st.set_page_config(
-        page_title="Aster Ops · AI Operations Employee",
-        page_icon="✦",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
-    apply_global_styles()
-    inject_pendo()
-    inject_toast_container()
-    selected_page = render_sidebar()
-    PAGE_RENDERERS[selected_page]()
+    try:
+        _run_preflight_once()
+
+        st.set_page_config(
+            page_title="Aster Ops · AI Operations Employee",
+            page_icon="✦",
+            layout="wide",
+            initial_sidebar_state="expanded",
+        )
+        apply_global_styles()
+        inject_pendo()
+        inject_toast_container()
+        selected_page = render_sidebar()
+        PAGE_RENDERERS[selected_page]()
+    except Exception as exc:
+        _handle_global_error(exc)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+[global]
+showErrorDetails = "none"
+
+[client]
+showErrorDetails = "none"
+
+[runner]
+magicEnabled = true
+fastReruns = true
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = true
