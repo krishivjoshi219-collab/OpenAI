@@ -172,8 +172,25 @@ def _create_preview(kind: ImportKind, file_name: str, content: bytes) -> None:
                 "warning_count": len(preview.warnings),
             },
         )
-    except (UnicodeDecodeError, ValueError) as error:
+    except Exception as error:
         st.error(f"We could not read that file: {error}")
+
+
+def _to_safe_records(records: list[dict[str, object]]) -> list[dict[str, str | float | int | bool | None]]:
+    safe: list[dict[str, str | float | int | bool | None]] = []
+    for record in records:
+        row: dict[str, str | float | int | bool | None] = {}
+        for key, value in record.items():
+            if value is None:
+                row[key] = None
+            elif hasattr(value, "isoformat"):
+                row[key] = value.isoformat()
+            elif isinstance(value, (int, float, bool)):
+                row[key] = value
+            else:
+                row[key] = str(value)
+        safe.append(row)
+    return safe
 
 
 def _render_preview(preview: ExtractionPreview) -> None:
@@ -188,12 +205,17 @@ def _render_preview(preview: ExtractionPreview) -> None:
         if "customer_name" not in records[0]:
             for row in records:
                 row.setdefault("customer_name", "Default Customer")
-        edited = st.data_editor(
-            records,
-            num_rows="dynamic",
-            use_container_width=True,
-            key="onboarding_preview_editor",
-        )
+        safe_records = _to_safe_records(records)
+        try:
+            edited = st.data_editor(
+                safe_records,
+                num_rows="dynamic",
+                width="stretch",
+                key="onboarding_preview_editor",
+            )
+        except Exception as exc:
+            st.error(f"Preview render failed: {exc}")
+            edited = safe_records
         col_confirm, col_proceed, col_discard = st.columns([1, 1, 2])
         with col_confirm:
             if st.button("Confirm import", type="primary", width="stretch"):
@@ -247,8 +269,8 @@ def _confirm_preview(preview: ExtractionPreview) -> None:
             },
         )
         st.rerun()
-    except ValueError as error:
-        st.error(str(error))
+    except Exception as error:
+        st.error(f"Import failed: {error}")
 
 
 def _render_confirmation(confirmation: ImportConfirmation) -> None:
