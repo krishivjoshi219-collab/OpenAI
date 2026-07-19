@@ -19,6 +19,33 @@ from app.ai.contracts import (
 from app.ai.tools import ActionLogger, ToolRegistry
 from app.prompts.loader import render_prompt
 
+try:
+    import streamlit as st
+except ImportError:
+    st = None
+
+
+def _is_rate_limit_error(error: Exception) -> bool:
+    """Detect whether an exception indicates a provider rate-limit condition."""
+
+    error_type = type(error).__name__
+    error_msg = str(error).lower()
+    return (
+        "rate limit" in error_msg
+        or "429" in error_msg
+        or error_type in ("RateLimitError", "HTTPStatusError")
+    )
+
+
+def _maybe_flag_rate_limit(error: Exception) -> None:
+    """Persist a rate-limit flag in Streamlit session state for the BYOK warning."""
+
+    if st is not None and _is_rate_limit_error(error):
+        try:
+            st.session_state["byok_rate_limit_error"] = True
+        except Exception:
+            pass
+
 
 # Maximum number of model ↔ tool round-trips before the loop is aborted.
 # Raised from 4 to 8 so that multi-step business commands (e.g. search → create
@@ -160,7 +187,11 @@ class AIService:
             {"role": message.role, "content": message.content}
             for message in state.messages
         ])
-        return self._client.responses.create(**request)
+        try:
+            return self._client.responses.create(**request)
+        except Exception as error:
+            _maybe_flag_rate_limit(error)
+            raise
 
     def _run_tool_loop(
         self,
@@ -207,7 +238,11 @@ class AIService:
                 request["tools"] = [tool.as_responses_tool() for tool in tools]
             if structured_output is not None:
                 request["text"] = {"format": structured_output.as_responses_format()}
-            response = self._client.responses.create(**request)
+            try:
+                response = self._client.responses.create(**request)
+            except Exception as error:
+                _maybe_flag_rate_limit(error)
+                raise
             tool_calls = self._extract_tool_calls(response)
             if not tool_calls:
                 return response, tuple(actions)
