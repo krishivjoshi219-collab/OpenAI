@@ -152,14 +152,44 @@ def _render_import_flow() -> None:
             )
             for message in confirmation.messages:
                 st.info(message)
-            if st.button("Import another file"):
-                st.session_state["onboarding_confirmation"] = None
-                st.session_state["onboarding_step"] = 2
-                st.session_state["onboarding_preview"] = None
-                st.rerun()
+            col_next, col_more = st.columns([1, 1])
+            with col_next:
+                if st.button("Finish setup →", type="primary", width="stretch"):
+                    st.session_state["onboarding_step"] = 4
+                    st.rerun()
+            with col_more:
+                if st.button("Import another file", width="stretch"):
+                    st.session_state["onboarding_confirmation"] = None
+                    st.session_state["onboarding_step"] = 2
+                    st.session_state["onboarding_preview"] = None
+                    st.rerun()
         else:
             if st.button("← Back to import"):
                 st.session_state["onboarding_step"] = 2
+                st.rerun()
+    elif current_step == 4:
+        st.progress(100, text="Step 4 of 4 · You're all set!")
+        st.success("🎉 Your workspace is ready. Your AI operations employee is standing by.")
+        render_section_title("What's next")
+        st.markdown(
+            """
+            Your business data has been imported and your workspace is configured.
+            Here's what you can do now:
+
+            - **Business Dashboard** — see a live snapshot of open invoices, low inventory, and outstanding balances
+            - **AI Commands** — give natural-language instructions to create customers, products, invoices, and reminders
+            - **Customers / Products / Invoices** — browse, search, and manage your data directly
+            - **Business Memory** — add operational context the AI can retrieve mid-command
+            """
+        )
+        col_dash, col_home = st.columns([1, 1])
+        with col_dash:
+            if st.button("Go to Dashboard", type="primary", width="stretch"):
+                st.session_state["nav_selected_page"] = "Business Dashboard"
+                st.rerun()
+        with col_home:
+            if st.button("Go to Home", width="stretch"):
+                st.session_state["nav_selected_page"] = "Home"
                 st.rerun()
 
 
