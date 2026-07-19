@@ -245,13 +245,23 @@ class CsvExtractionProvider:
     @staticmethod
     def _required_with_default(row: dict[str, str], default: str, *names: str) -> str:
         value = CsvExtractionProvider._optional(row, *names)
-        return value if value is not None else default
+        if value is not None:
+            return value
+        normalized_names = {CsvExtractionProvider._normalize(name) for name in names}
+        for key, val in row.items():
+            if CsvExtractionProvider._normalize(key) in normalized_names and val and val.strip():
+                return val.strip()
+        for val in row.values():
+            if val and val.strip():
+                return val.strip()
+        return default
 
     @staticmethod
     def _optional(row: dict[str, str], *names: str) -> str | None:
-        for name in names:
-            if value := row.get(name):
-                return value
+        normalized_names = {CsvExtractionProvider._normalize(name) for name in names}
+        for key, value in row.items():
+            if CsvExtractionProvider._normalize(key) in normalized_names and value and value.strip():
+                return value.strip()
         return None
 
     @staticmethod
