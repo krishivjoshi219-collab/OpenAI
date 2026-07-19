@@ -70,10 +70,4 @@ def create_all_tables(engine: Engine | None = None) -> None:
     )
 
     db_engine = engine or create_engine_from_settings()
-    inspector = inspect(db_engine)
-    existing_tables = set(inspector.get_table_names())
-
-    required_tables = {table.name for table in Base.metadata.tables.values()}
-    missing_tables = required_tables - existing_tables
-    if missing_tables:
-        Base.metadata.create_all(bind=db_engine)
+    Base.metadata.create_all(bind=db_engine)

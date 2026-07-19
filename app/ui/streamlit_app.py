@@ -3,6 +3,10 @@ import sys
 
 # Ensure the project root is importable as `app` on all runtimes,
 # including Streamlit Cloud where __file__ may resolve inside the container.
+_cwd = os.getcwd()
+if _cwd not in sys.path:
+    sys.path.insert(0, _cwd)
+
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, "../.."))
 if _PROJECT_ROOT not in sys.path:
@@ -75,9 +79,6 @@ def _run_preflight_once() -> None:
 
 def _init_database_once() -> None:
     """Create all database tables if they do not already exist."""
-
-    if st.session_state.get("db_initialized"):
-        return
 
     try:
         from app.database.session import create_all_tables
