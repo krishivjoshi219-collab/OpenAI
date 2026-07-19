@@ -1,7 +1,6 @@
 [global]
 
 [client]
-showErrorDetails = "none"
 showSidebarNavigation = false
 
 [runner]

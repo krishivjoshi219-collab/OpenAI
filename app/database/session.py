@@ -1,5 +1,6 @@
 """Database engine and unit-of-work session factories."""
 
+import os
 from collections.abc import Generator
 from contextlib import contextmanager
 
@@ -17,6 +18,11 @@ def _normalize_database_url(url: str) -> str:
         return url.replace("postgresql://", "postgresql+psycopg://", 1).replace(
             "postgres://", "postgresql+psycopg://", 1
         )
+    if url.startswith("sqlite:///") and not url.startswith("sqlite:////"):
+        relative_path = url[len("sqlite:///"):]
+        if not relative_path.startswith("/"):
+            absolute_path = os.path.abspath(relative_path)
+            return f"sqlite:///{absolute_path}"
     return url
 
 
@@ -71,3 +77,15 @@ def create_all_tables(engine: Engine | None = None) -> None:
 
     db_engine = engine or create_engine_from_settings()
     Base.metadata.create_all(bind=db_engine)
+
+    # Verify tables were actually created
+    from sqlalchemy import inspect
+    inspector = inspect(db_engine)
+    existing = set(inspector.get_table_names())
+    required = {table.name for table in Base.metadata.tables.values()}
+    missing = required - existing
+    if missing:
+        raise RuntimeError(
+            f"Table creation failed. Missing tables: {missing}. "
+            f"Existing tables: {existing}."
+        )

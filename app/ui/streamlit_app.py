@@ -1,16 +1,20 @@
 import os
 import sys
+from pathlib import Path
 
 # Ensure the project root is importable as `app` on all runtimes,
-# including Streamlit Cloud where __file__ may resolve inside the container.
-_cwd = os.getcwd()
-if _cwd not in sys.path:
-    sys.path.insert(0, _cwd)
+# including Streamlit Cloud where the repo is mounted at /mount/src/openai.
+_SCRIPT_PATH = Path(__file__).resolve()
+_PROJECT_ROOT = _SCRIPT_PATH.parent.parent.parent
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-_PROJECT_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, "../.."))
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
+for _candidate in [
+    Path("/mount/src/openai"),
+    _PROJECT_ROOT,
+    Path(os.getcwd()),
+]:
+    _resolved = _candidate.resolve()
+    if (_resolved / "app").is_dir() and str(_resolved) not in sys.path:
+        sys.path.insert(0, str(_resolved))
 
 """Streamlit entry point for the AI Operations Employee MVP."""
 
@@ -80,6 +84,9 @@ def _run_preflight_once() -> None:
 def _init_database_once() -> None:
     """Create all database tables if they do not already exist."""
 
+    if st.session_state.get("db_initialized"):
+        return
+
     try:
         from app.database.session import create_all_tables
 
@@ -88,6 +95,7 @@ def _init_database_once() -> None:
     except Exception as exc:  # noqa: BLE001
         st.session_state["db_initialized"] = False
         st.session_state["db_init_error"] = str(exc)
+        raise
 
 
 def _handle_global_error(exc: Exception) -> None:

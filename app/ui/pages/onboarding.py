@@ -102,6 +102,17 @@ def _render_business_profile() -> None:
             st.rerun()
         except ValueError as error:
             st.error(str(error))
+        except Exception as exc:
+            error_str = str(exc)
+            if "no such table" in error_str and "business" in error_str.lower():
+                try:
+                    from app.database.session import create_all_tables
+                    create_all_tables()
+                    st.rerun()
+                except Exception as db_error:
+                    st.error(f"Database initialization failed: {db_error}")
+            else:
+                st.error(f"Failed to create workspace: {exc}")
 
 
 def _render_import_flow() -> None:
