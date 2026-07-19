@@ -156,6 +156,10 @@ class AIService:
             request["tools"] = [tool.as_responses_tool() for tool in tools]
         if structured_output is not None:
             request["text"] = {"format": structured_output.as_responses_format()}
+        request.setdefault("conversation_messages", [
+            {"role": message.role, "content": message.content}
+            for message in state.messages
+        ])
         return self._client.responses.create(**request)
 
     def _run_tool_loop(
@@ -198,6 +202,10 @@ class AIService:
                 "instructions": instructions,
                 "previous_response_id": response.id,
                 "input": outputs,
+                "conversation_messages": [
+                    {"role": message.role, "content": message.content}
+                    for message in state.messages
+                ],
             }
             if tools:
                 request["tools"] = [tool.as_responses_tool() for tool in tools]

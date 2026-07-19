@@ -140,7 +140,9 @@ def _run_command(command: str, business_id: UUID) -> None:
             with session_scope(create_session_factory()) as session:
                 engine = BusinessEngine(session)
                 ai_service = create_business_ai_service(engine, business_id)
-                result = ai_service.business_command(command)
+                conversation = st.session_state.get("voice_conversation")
+                result = ai_service.business_command(command, conversation=conversation)
+            st.session_state["voice_conversation"] = result.conversation
 
             structured = result.structured_output or {}
             entry = {

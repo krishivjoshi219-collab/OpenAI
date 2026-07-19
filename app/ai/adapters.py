@@ -28,7 +28,7 @@ def _schema(properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
     return {
         "type": "object",
         "properties": {**properties, "reason": {"type": "string", "description": "Why this action is needed."}},
-        "required": [*required, "reason"],
+        "required": required,
         "additionalProperties": False,
     }
 

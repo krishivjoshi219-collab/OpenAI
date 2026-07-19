@@ -198,9 +198,10 @@ class InvoiceService(_BusinessScopedService):
         invoice.items = [self._create_line(business_id, index, line) for index, line in enumerate(command.lines, 1)]
         invoice.subtotal = sum((item.quantity * item.unit_price for item in invoice.items), Decimal("0"))
         invoice.subtotal = _money(invoice.subtotal)
-        invoice.total = sum((item.line_total for item in invoice.items), Decimal("0"))
-        invoice.total = _money(invoice.total)
-        invoice.tax_total = _money(invoice.total - invoice.subtotal)
+        invoice.tax_total = _money(sum(
+            item.line_total - item.quantity * item.unit_price for item in invoice.items
+        ))
+        invoice.total = _money(invoice.subtotal + invoice.tax_total)
         self._session.add(invoice)
         self._session.flush()
         pendo.track(

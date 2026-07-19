@@ -43,7 +43,7 @@ def _schema(properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
             **properties,
             "reason": {"type": "string", "description": "Why this Odoo action is needed."},
         },
-        "required": [*required, "reason"],
+        "required": required,
         "additionalProperties": False,
     }
 

@@ -10,7 +10,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Business, Customer, Inventory, Invoice, Product
+from app.models import Business, Customer, Inventory, Invoice, InvoiceItem, Product
 from app.onboarding.extraction import (
     CustomerRecord,
     ExtractedRecord,
@@ -182,7 +182,19 @@ class OnboardingImportService:
                 subtotal=record.total,
                 tax_total=Decimal("0"),
                 total=record.total,
+                notes=None,
             )
+            invoice.items = [
+                InvoiceItem(
+                    product=None,
+                    position=1,
+                    description=f"Imported from {record.invoice_number}",
+                    quantity=Decimal("1"),
+                    unit_price=record.total,
+                    tax_rate=Decimal("0"),
+                    line_total=record.total,
+                )
+            ]
             self._session.add(invoice)
             summary.created += 1
         else:
@@ -193,6 +205,18 @@ class OnboardingImportService:
             invoice.currency_code = record.currency_code
             invoice.subtotal = record.total
             invoice.total = record.total
+            if not invoice.items:
+                invoice.items = [
+                    InvoiceItem(
+                        product=None,
+                        position=1,
+                        description=f"Imported from {record.invoice_number}",
+                        quantity=Decimal("1"),
+                        unit_price=record.total,
+                        tax_rate=Decimal("0"),
+                        line_total=record.total,
+                    )
+                ]
             summary.updated += 1
 
     def _find_customer(

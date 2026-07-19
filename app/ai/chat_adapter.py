@@ -43,7 +43,6 @@ class _ChatCompletionsResource:
 
     def __init__(self, client: Any) -> None:
         self._client = client
-        # Maps response_id → full message list (including the assistant turn).
         self._history: dict[str, list[dict[str, Any]]] = {}
 
     def create(
@@ -55,9 +54,10 @@ class _ChatCompletionsResource:
         previous_response_id: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         text: dict[str, Any] | None = None,
+        conversation_messages: list[dict[str, Any]] | None = None,
         **_kwargs: Any,
     ) -> _ChatResponse:
-        messages = self._build_messages(instructions, input, previous_response_id)
+        messages = self._build_messages(instructions, input, previous_response_id, conversation_messages)
         chat_tools = [self._convert_tool(t) for t in tools] if tools else None
         response_format = self._convert_format(text) if text else None
 
@@ -79,6 +79,7 @@ class _ChatCompletionsResource:
         instructions: str,
         input_items: list[dict[str, Any]],
         previous_response_id: str | None,
+        conversation_messages: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         """Reconstruct the full message list for this turn."""
 
@@ -102,8 +103,23 @@ class _ChatCompletionsResource:
                 return base + tool_messages
             return base + input_items
 
-        # Fresh conversation — prepend system instructions.
+        if previous_response_id and conversation_messages:
+            base = [{"role": "system", "content": instructions}, *conversation_messages]
+            if is_tool_turn:
+                tool_messages = [
+                    {
+                        "role": "tool",
+                        "tool_call_id": item["call_id"],
+                        "content": item["output"],
+                    }
+                    for item in input_items
+                ]
+                return base + tool_messages
+            return base + input_items
+
         system_msg: dict[str, Any] = {"role": "system", "content": instructions}
+        if conversation_messages:
+            return [system_msg, *conversation_messages, *input_items]
         return [system_msg, *input_items]
 
     def _build_response(
