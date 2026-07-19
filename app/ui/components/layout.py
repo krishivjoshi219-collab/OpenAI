@@ -38,6 +38,7 @@ def render_sidebar() -> str:
             options=list(PAGES),
             format_func=lambda page: PAGES[page],
             label_visibility="collapsed",
+            key="nav_selected_page",
         )
         st.markdown(
             """

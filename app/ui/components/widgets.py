@@ -33,8 +33,8 @@ def render_metric(metric: Metric) -> None:
     )
 
 
-def render_empty_state(icon: str, title: str, description: str, action: str) -> None:
-    """Render an intentional empty state with a non-functional action affordance."""
+def render_empty_state(icon: str, title: str, description: str, action: str) -> bool:
+    """Render an intentional empty state. Returns True if the action button was clicked."""
 
     st.markdown(
         f"""
@@ -46,7 +46,7 @@ def render_empty_state(icon: str, title: str, description: str, action: str) -> 
         """,
         unsafe_allow_html=True,
     )
-    st.button(action, width="content", key=f"empty_{action}")
+    return bool(st.button(action, width="content", key=f"empty_{action}"))
 
 
 def render_skeleton_metric(count: int = 4) -> None:

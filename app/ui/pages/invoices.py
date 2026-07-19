@@ -17,13 +17,6 @@ from app.services.invoice_pdf import InvoicePdfRenderer
 from app.ui.components.layout import render_page_header
 from app.ui.components.widgets import render_empty_state
 
-_STATUS_TONE: dict[str, str] = {
-    "DRAFT":  "neutral",
-    "ISSUED": "positive",
-    "PAID":   "positive",
-    "VOID":   "neutral",
-}
-
 _RENDERER     = InvoiceImageRenderer()
 _PDF_RENDERER = InvoicePdfRenderer()
 
@@ -89,12 +82,14 @@ def render() -> None:
 
 
 def _render_no_business() -> None:
-    render_empty_state(
+    if render_empty_state(
         "◎",
         "Complete onboarding first",
         "Set up your business workspace in the Onboarding section, then your invoices will appear here.",
         "Go to Onboarding",
-    )
+    ):
+        st.session_state["nav_selected_page"] = "Onboarding"
+        st.rerun()
 
 
 def _render_invoice_list(

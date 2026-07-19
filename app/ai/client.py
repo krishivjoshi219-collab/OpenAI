@@ -44,7 +44,10 @@ def _get_sidebar_key(key: str) -> str | None:
 
         value = st.session_state.get(f"byok_{key}")
         return value if value else None
+    except ImportError:
+        return None
     except Exception:
+        # Streamlit is present but session state is unavailable (e.g. non-UI context)
         return None
 
 
