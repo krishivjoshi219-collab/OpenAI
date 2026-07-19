@@ -4,7 +4,6 @@ import streamlit as st
 
 from app.ui.components.sidebar_keys import render_byok_section
 
-
 PAGES: dict[str, str] = {
     "Home": "✦  Home",
     "Onboarding": "◎  Onboarding",

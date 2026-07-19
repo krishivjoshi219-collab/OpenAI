@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Any, Callable
+from typing import Any
 
 from app.ai.contracts import ActionLogEntry, ToolDefinition, ToolHandler
 

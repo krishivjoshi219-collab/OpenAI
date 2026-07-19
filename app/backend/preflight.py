@@ -7,7 +7,7 @@ import json
 import time
 from dataclasses import dataclass
 from typing import Any
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
@@ -159,7 +159,7 @@ async def run_preflight_checks(
             asyncio.gather(*tasks, return_exceptions=True),
             timeout=timeout,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raw_results = [
             PreflightResult(name, False, timeout * 1000, "preflight_timeout")
             for name in ("openai", "telegram", "odoo")

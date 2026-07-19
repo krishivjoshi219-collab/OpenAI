@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any
 
 
 class HealthStatus(StrEnum):
@@ -24,7 +25,7 @@ class ComponentHealth:
     name: str
     status: HealthStatus
     message: str
-    checked_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     latency_ms: float | None = None
 
 
@@ -66,7 +67,7 @@ class HealthCheck:
 
         return {
             "status": overall.value,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "components": {
                 name: {
                     "name": c.name,

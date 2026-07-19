@@ -18,14 +18,15 @@ for _candidate in [
 
 """Streamlit entry point for the AI Operations Employee MVP."""
 
-import traceback
-import streamlit as st
+import traceback  # noqa: E402
 
-from app.ui.components.layout import render_sidebar
-from app.ui.components.pendo import inject_pendo
-from app.ui.components.styles import apply_global_styles
-from app.ui.components.toast import inject_toast_container
-from app.ui.pages import (
+import streamlit as st  # noqa: E402
+
+from app.ui.components.layout import render_sidebar  # noqa: E402
+from app.ui.components.pendo import inject_pendo  # noqa: E402
+from app.ui.components.styles import apply_global_styles  # noqa: E402
+from app.ui.components.toast import inject_toast_container  # noqa: E402
+from app.ui.pages import (  # noqa: E402
     business_memory,
     code_viewer,
     customers,
@@ -38,7 +39,6 @@ from app.ui.pages import (
     settings,
     voice_commands,
 )
-
 
 PAGE_RENDERERS = {
     "Home": home.render,
@@ -64,8 +64,9 @@ def _run_preflight_once() -> None:
     try:
         import asyncio
 
-        from app.backend.preflight import run_preflight_checks
         from config.settings import get_settings
+
+        from app.backend.preflight import run_preflight_checks
 
         settings = get_settings()
         results = asyncio.run(run_preflight_checks(settings, total_timeout_ms=3000))

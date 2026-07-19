@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import io
 
-from openai import OpenAI
-
 from config.settings import get_settings
+from openai import OpenAI
 
 _GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 _WHISPER_MODEL = "whisper-large-v3-turbo"

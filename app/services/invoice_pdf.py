@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import io
 from datetime import date
-from decimal import Decimal
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -109,7 +108,6 @@ class InvoicePdfRenderer:
 
     def _draw_header(self, c: Canvas, data: InvoiceImageData, y: float) -> float:
         h = 28 * mm
-        top = y
         bottom = y - h
 
         c.setFillColor(_C_HEADER_BG)

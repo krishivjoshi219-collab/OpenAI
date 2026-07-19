@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from config.settings import get_settings
+
 from app.notifications.contracts import NotificationTarget
 from app.notifications.service import NotificationService
 from app.notifications.telegram import TelegramNotificationChannel
-from config.settings import get_settings
 
 
 def create_notification_service() -> NotificationService:

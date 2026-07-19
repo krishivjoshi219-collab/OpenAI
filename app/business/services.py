@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from uuid import UUID
 
 from sqlalchemy import or_, select
@@ -17,7 +17,16 @@ from app.business.commands import (
     CreateReminder,
     UpdateInventory,
 )
-from app.models import Business, Customer, Inventory, Invoice, InvoiceItem, Product, Reminder, Supplier
+from app.models import (
+    Business,
+    Customer,
+    Inventory,
+    Invoice,
+    InvoiceItem,
+    Product,
+    Reminder,
+    Supplier,
+)
 
 _MONEY = Decimal("0.01")
 

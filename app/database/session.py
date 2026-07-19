@@ -4,11 +4,10 @@ import os
 from collections.abc import Generator
 from contextlib import contextmanager
 
+from config.settings import get_settings
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
-
-from config.settings import get_settings
 
 
 def _normalize_database_url(url: str) -> str:
@@ -62,18 +61,6 @@ def create_all_tables(engine: Engine | None = None) -> None:
     """Create all SQLAlchemy model tables if they do not already exist."""
 
     from app.database.base import Base
-    from app.models import (  # noqa: PLC0415
-        Business,
-        BusinessMemory,
-        Customer,
-        Invoice,
-        InvoiceItem,
-        Inventory,
-        Product,
-        Reminder,
-        Settings,
-        Supplier,
-    )
 
     db_engine = engine or create_engine_from_settings()
     Base.metadata.create_all(bind=db_engine)
