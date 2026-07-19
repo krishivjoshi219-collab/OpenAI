@@ -180,28 +180,44 @@ def _render_preview(preview: ExtractionPreview) -> None:
     """Render the confirmation screen for a non-persisted extraction result."""
 
     render_section_title("Review before import")
-    if not preview.is_supported:
-        st.warning(preview.warnings[0])
-        if st.button("Force Continue to Next Step"):
-            st.session_state.onboarding_step = 3
-            st.session_state.onboarding_preview = None
-            st.rerun()
-        return
-    st.caption(f"{preview.file_name} · {len(preview.records)} records found")
-    if preview.records:
-        st.dataframe([asdict(record) for record in preview.records], width="stretch")
-    else:
-        st.info("No rows were found in this file. Nothing will be saved.")
     if preview.warnings:
         for warning in preview.warnings:
             st.warning(warning)
-    confirm, discard = st.columns([1, 4])
-    with confirm:
-        if st.button("Confirm import", type="primary", width="stretch"):
-            _confirm_preview(preview)
-    with discard:
-        if st.button("Discard preview"):
-            st.session_state["onboarding_preview"] = None
+    records = [asdict(record) for record in preview.records] if preview.records else []
+    if records:
+        if "customer_name" not in records[0]:
+            for row in records:
+                row.setdefault("customer_name", "Default Customer")
+        edited = st.data_editor(
+            records,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="onboarding_preview_editor",
+        )
+        col_confirm, col_proceed, col_discard = st.columns([1, 1, 2])
+        with col_confirm:
+            if st.button("Confirm import", type="primary", width="stretch"):
+                _confirm_preview(preview)
+        with col_proceed:
+            if st.button("Confirm & Proceed to Next Step", width="stretch"):
+                if "onboarding_step" in st.session_state:
+                    st.session_state.onboarding_step = 3
+                elif "step" in st.session_state:
+                    st.session_state.step = 3
+                st.session_state.onboarding_preview = None
+                st.rerun()
+        with col_discard:
+            if st.button("Discard preview", width="stretch"):
+                st.session_state["onboarding_preview"] = None
+                st.rerun()
+    else:
+        st.info("No rows were found in this file. Nothing will be saved.")
+        if st.button("Confirm & Proceed to Next Step", type="primary", width="stretch"):
+            if "onboarding_step" in st.session_state:
+                st.session_state.onboarding_step = 3
+            elif "step" in st.session_state:
+                st.session_state.step = 3
+            st.session_state.onboarding_preview = None
             st.rerun()
 
 
