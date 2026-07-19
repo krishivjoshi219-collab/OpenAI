@@ -1,21 +1,22 @@
 """Pendo analytics snippet injection for Streamlit."""
 
-# ruff: noqa: E501
+from __future__ import annotations
 
-import streamlit.components.v1 as components
+import base64
+
+import streamlit as st
 
 
 def inject_pendo() -> None:
-    """Inject the Pendo install snippet and anonymous initialisation into the parent frame.
+    """Inject the Pendo install snippet into the parent frame via ``st.iframe``.
 
     Streamlit strips ``<script>`` tags from ``st.markdown``, so the snippet is
-    loaded via ``components.html`` which renders inside a same-origin iframe.
+    loaded via an iframe with a base64-encoded ``data:text/html`` source.
     The script targets ``window.parent`` so that Pendo runs on the main page.
     A guard flag prevents duplicate injection on Streamlit re-renders.
     """
 
-    components.html(
-        """<script>
+    html = """<script>
 (function(){
     var pw=window.parent;
     if(pw.__pendo_injected)return;
@@ -29,6 +30,8 @@ def inject_pendo() -> None:
     })('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhY2VudGVyIjoidXMiLCJrZXkiOiI3OTJkODgwOWFhNzViMTU2OGI4MzdmYzIwN2RjMDRlOThhYjRiMzljM2ZiOTZjZTEyZmUxZTY2YWMwNjZhYzJlNWM4Y2NlOWUxODQ5MmRlYzY3ODMwNzAzMTQzNmIxZDY5MGVkYzg5NGQzYmVmOTgzZTlkOTI3ZTZkZmY2MTEyOTNhMTc0ODc3YTk3ZmYyM2JhMDI3NGM4MDFkMjk1M2U3YTllNjUzOTBjM2U1NTUwNzkxZTg1NWQzMjlkMjU5MDMuMTE1NTgxNWJiNTRhMjBhNDZlMjk0OGJmZDg0MTkwNmMuNDhlMTM0OGE2ZTQ5MDgyNzZlOTAyYTRkM2Q1YTA4YzYwNjQxZTUzYjg1YmU2ZDgzZmJiZDAyNjczMjlkNGJlOSJ9.VTAJlLem34kAxkET12f65dj0ztWQEvJql7AL4_BV1L7URK2MEzQdkBjXqjg0R_KYefAlAKjva84b9tn6zlOPEnIdIClxg_RyBx232gqSxUXOzsPlh7PGZ__lYXkhPlqqY0cG1cQxXEuQ8ShwizuNWB0L80osrTdHi8MpaffAlpw');
     pw.pendo.initialize({visitor:{id:''}});
 })();
-</script>""",
-        height=0,
-    )
+</script>"""
+
+    b64 = base64.b64encode(html.encode("utf-8")).decode("utf-8")
+    st.iframe(src=f"data:text/html;base64,{b64}", height=0)
+

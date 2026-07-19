@@ -20,6 +20,7 @@ class PreflightResult:
     latency_ms: float
     error: str | None = None
     status_code: int | None = None
+    error_kind: str = "unknown"
 
 
 async def _check_openai(
@@ -45,11 +46,14 @@ async def _check_openai(
             latency = (time.perf_counter() - start) * 1000
             error_str = str(exc)
             status = None
+            error_kind = "unknown"
             if "429" in error_str:
                 status = 429
+                error_kind = "rate_limit"
             elif "401" in error_str:
                 status = 401
-            return PreflightResult("openai", False, latency, error_str, status)
+                error_kind = "auth"
+            return PreflightResult("openai", False, latency, error_str, status, error_kind)
 
     return await asyncio.to_thread(_sync)
 
@@ -76,10 +80,11 @@ async def _check_telegram(
                 return PreflightResult("telegram", False, latency, str(body))
         except HTTPError as exc:
             latency = (time.perf_counter() - start) * 1000
-            return PreflightResult("telegram", False, latency, str(exc), exc.code)
+            error_kind = "auth" if exc.code in (401, 403) else "connectivity"
+            return PreflightResult("telegram", False, latency, str(exc), exc.code, error_kind)
         except Exception as exc:  # noqa: BLE001
             latency = (time.perf_counter() - start) * 1000
-            return PreflightResult("telegram", False, latency, str(exc))
+            return PreflightResult("telegram", False, latency, str(exc), error_kind="connectivity")
 
     return await asyncio.to_thread(_sync)
 
@@ -109,11 +114,14 @@ async def _check_odoo(
             latency = (time.perf_counter() - start) * 1000
             error_str = str(exc)
             status = None
+            error_kind = "connectivity"
             if "401" in error_str or "403" in error_str:
                 status = 401
+                error_kind = "auth"
             elif "429" in error_str:
                 status = 429
-            return PreflightResult("odoo", False, latency, error_str, status)
+                error_kind = "rate_limit"
+            return PreflightResult("odoo", False, latency, error_str, status, error_kind)
 
     return await asyncio.to_thread(_sync)
 

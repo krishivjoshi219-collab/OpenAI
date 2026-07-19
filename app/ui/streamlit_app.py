@@ -4,6 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 """Streamlit entry point for the AI Operations Employee MVP."""
 
+import traceback
 import streamlit as st
 
 from app.ui.components.layout import render_sidebar
@@ -57,7 +58,7 @@ def _run_preflight_once() -> None:
 
         for name, result in results.items():
             st.session_state[f"preflight_result_{name}"] = result
-            if not result.ok:
+            if not result.ok and getattr(result, "error_kind", "") == "auth":
                 st.session_state[f"preflight_failed_{name}"] = True
 
         st.session_state["preflight_completed"] = True
@@ -94,6 +95,7 @@ def main() -> None:
         selected_page = render_sidebar()
         PAGE_RENDERERS[selected_page]()
     except Exception as exc:
+        traceback.print_exc()
         _handle_global_error(exc)
 
 
