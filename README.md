@@ -287,3 +287,193 @@ ruff check .
 mypy app
 pytest
 ```
+
+---
+
+## Core System Architecture & Components
+
+The backend now exposes a production-grade infrastructure layer (`app/backend/`) designed for observability, resilience, and startup safety.
+
+### Metrics Collection (`app/backend/metrics.py`)
+
+A thread-safe `MetricsCollector` registry manages two metric primitives:
+
+- **Counter** — monotonically increasing values (e.g. `notifications_sent_total`).
+- **Histogram** — distributions of observed latencies or sizes (e.g. `ai_tool_call_duration_seconds`).
+
+Both are label-aware and safe for concurrent access. A process-wide `metrics` singleton is exported for one-line instrumentation:
+
+```python
+from app.backend.metrics import metrics
+
+counter = metrics.counter("ai_commands_total", provider="openai")
+counter.inc()
+
+histogram = metrics.histogram("tool_call_duration_seconds", tool="create_invoice")
+histogram.observe(0.42)
+```
+
+`snapshot()` returns a serialisable dict suitable for Prometheus pull or JSON dump.
+
+### Circuit Breaker (`app/backend/circuit_breaker.py`)
+
+`CircuitBreaker` protects every external dependency (Odoo JSON-RPC, Telegram Bot API, future LLM providers) from cascading failures. It operates in three states:
+
+| State | Behaviour |
+|---|---|
+| `CLOSED` | Calls pass through. Failures increment a counter. |
+| `OPEN` | Calls fail immediately with `CircuitOpenError`. After `recovery_timeout` seconds the breaker transitions to `HALF_OPEN`. |
+| `HALF_OPEN` | A limited number of probe calls (`half_open_max_calls`) are allowed through. Success closes the breaker; failure re-opens it. |
+
+Configuration is explicit per-instance:
+
+```python
+from app.backend.circuit_breaker import CircuitBreaker
+
+breaker = CircuitBreaker(
+    name="odoo_jsonrpc",
+    failure_threshold=5,
+    recovery_timeout=30.0,
+    half_open_max_calls=3,
+)
+
+result = breaker.call(gateway.execute, model, method, args, kwargs)
+```
+
+All state transitions emit structured log entries.
+
+### Health Checks (`app/backend/health.py`)
+
+`HealthCheck` is a pluggable registry of component probes. Each probe returns a `ComponentHealth` with a `HealthStatus` (`healthy`, `degraded`, `unhealthy`), optional latency, and a human-readable message.
+
+```python
+from app.backend.health import HealthCheck, HealthStatus
+
+health = HealthCheck()
+health.register("database", lambda: ComponentHealth(...))
+health.register("odoo", lambda: ComponentHealth(...))
+
+status = health.check()  # aggregate dict
+```
+
+Aggregate logic: one `unhealthy` component marks the whole system `unhealthy`; `degraded` marks the system `degraded`; otherwise `healthy`.
+
+### Logging & Configuration (`app/backend/logging.py`, `app/backend/config.py`)
+
+**Logging** supports two formatters out of the box:
+
+- **Structured JSON** — every record includes `timestamp`, `level`, `logger`, `message`, `module`, `function`, `line`, and optional `exception` / `extra` fields. Ideal for ELK / Datadog ingestion.
+- **Human-readable** — colour-friendly console format for local development.
+
+```python
+from app.backend.logging import configure_logging, get_logger
+
+configure_logging("INFO", json_format=True)
+logger = get_logger("notifications.telegram")
+```
+
+**Configuration validation** runs at startup and produces a `ValidationResult` per field:
+
+- Validates `DATABASE_URL` presence.
+- Validates the active AI provider key (`OPENAI_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY`).
+- Validates Telegram consistency (`TELEGRAM_BOT_TOKEN` ↔ `TELEGRAM_CHAT_ID`).
+- Validates Odoo completeness (`ODOO_URL` + `ODOO_DATABASE` + `ODOO_USERNAME` + `ODOO_API_KEY`).
+
+Raising `SettingsValidationError` on failure prevents the app from starting with a half-configured environment.
+
+---
+
+## Advanced Frontend Interfaces & Components
+
+The Streamlit UI layer (`app/ui/`) now uses a component architecture with layout-independent animation primitives.
+
+### Toast Notification Container (`app/ui/components/toast.py`)
+
+A fixed-position toast engine injected once per page load via `inject_toast_container()`. Toasts slide in from the right, auto-dismiss after a configurable duration, and slide out on removal.
+
+```python
+from app.ui.components.toast import render_toast
+
+render_toast(
+    title="Invoice created",
+    message="INV-2026-001 has been saved.",
+    icon="✅",
+    duration=3.5,
+)
+```
+
+Implementation notes:
+- Uses a single `#toast-root` container in the DOM.
+- Each toast gets a unique ID and a self-removing `<script>` block.
+- CSS animations (`slideInRight`, `slideOutRight`) are GPU-composited for smooth 60fps motion.
+- Pointer-events are disabled on the container and enabled on individual toasts to avoid blocking page interaction.
+
+### Skeleton Loaders (`app/ui/components/widgets.py`)
+
+Two shimmer placeholders ground long-running operations (LLM tool loops, database queries, PDF rendering):
+
+- `render_skeleton_metric(count=4)` — four metric-card skeletons for dashboard loading states.
+- `render_skeleton_card()` — a single content-card skeleton for detail views.
+
+Shimmer is implemented via a CSS `linear-gradient` animation (`shimmer` keyframes) that sweeps a lighter band across a neutral base colour. No JavaScript or image assets required.
+
+### Micro-Interaction Animations (`app/ui/components/styles.py`)
+
+All animations are CSS-first, hardware-accelerated, and respect `prefers-reduced-motion` via standard media queries where applicable.
+
+| Animation | Target | Trigger |
+|---|---|---|
+| `pageFadeIn` | Page header, section titles, cards | Initial page render |
+| `float` | Empty-state icon | Continuous |
+| `shimmer` | Skeleton cards | Loading state |
+| `spin` | Custom spinner | Processing state |
+| `pulse-ring` | Voice recording indicator | Active recording |
+| `slideInRight` / `slideOutRight` | Toast notifications | Show / dismiss |
+
+Card surfaces use `box-shadow` and `transform: translateY(-2px)` on hover to create a tactile lift effect. Buttons use `:active` state to collapse back to baseline, simulating physical press. Sidebar nav items slide 2px right on hover. Badges scale to 1.05× on hover. Form inputs gain a forest-green focus ring (`box-shadow: 0 0 0 3px rgba(18,91,72,.12)`).
+
+---
+
+## Integration with Codex Cloud Engine
+
+This project is actively developed through the **OpenAI Codex CLI** development loop.
+
+- **Codex Session ID:** `019f7498-46ec-7831-a552-1fa39a9f4525`
+- **Model:** `gpt-4.1` (free tier)
+- **Model Context Protocol (MCP):** Linked tooling surfaces for filesystem reads, Bash execution, and web search are wired into the Codex runtime.
+
+The development workflow is terminal-native:
+
+1. **Analyze** — Codex reads the full `app/` tree via MCP filesystem tools, identifies multi-step action flows, data-model inconsistencies, and UI gaps.
+2. **Patch** — Edits are applied directly to the workspace (`app/ai/`, `app/business/`, `app/ui/`, `app/notifications/`) with atomic `Edit` operations.
+3. **Deploy** — Bash tooling runs `py_compile` checks, `pytest` suites, and lint gates (`ruff`, `mypy`) before marking a turn complete.
+4. **Log** — Every Codex turn emits execution blocks capturing the prompt, tool calls, and diff summaries. This session's provenance is traceable through the Codex Session ID above.
+
+This loop systematically analysed and patched the entire multi-step business logic matrix — from the Responses API adapter's conversation-history fallback to the Odoo circuit-breaker wrapper — without leaving the terminal.
+
+---
+
+## The Architectural Edge
+
+### vs. Standard ChatGPT (Web / API)
+
+| Limitation | ChatGPT Web / API | Aster Ops AI Employee |
+|---|---|---|
+| **Execution memory** | Ephemeral per-session; lost on refresh or timeout | Persistent `ConversationState` with `previous_response_id` fallback + `conversation_messages` cache |
+| **Multi-turn reliability** | Context drift after 4K–8K tokens; no server-side continuation | `ChatCompletionsClient` adapter reconstructs full history from `state.messages` when `previous_response_id` cache misses |
+| **Bilingual operation** | English-primary; Hindi mixed quality | Explicit English + Hindi voice examples, Whisper `hi` language code, and mixed-language prompt templates |
+| **Tool execution** | Optional function calling; no guaranteed execution audit | Mandatory tool loop with `ActionLogEntry` per call, structured output validation, and 8-turn cap with safe failure recovery |
+| **Business scoping** | No multi-tenant data isolation | UUID-based `business_id` scoping on every SQLAlchemy query and tool invocation |
+
+### vs. Stock Odoo Integrations
+
+| Limitation | Native Odoo Modules | Aster Ops `aster_ops_integration` |
+|---|---|---|
+| **Integration style** | Rigid, synchronous XML-RPC / JSON-RPC hooks | Pluggable `OdooGateway` protocol with circuit-breaker protection and async webhook inbound (`/aster_ops/webhook/inbound`) |
+| **Observability** | Minimal logging; no structured audit trail | Immutable `aster_ops_log` model with sequence reference (`AOP-000001`), request/response payloads, latency, and error capture |
+| **Data integrity** | Loose external references; fragile post-migration IDs | Unique `(company_id, external_system, external_model, external_id)` constraint on `aster_ops_mapping` |
+| **Resilience** | Remote Odoo downtime blocks sync jobs | `CircuitBreaker` trips after 5 failures, enters `HALF_OPEN` probe mode after 30s, and prevents thread / worker exhaustion |
+| **Scheduling** | Basic `ir.cron` with no visibility | Scheduled action (`ir_cron_sync_aster_ops`) runs every 15 minutes with pending-record detection and error-state tracking |
+| **Security** | Broad model access via groups | Granular `ir.model.access.csv` — users read logs/mappings; managers have full CRUD |
+
+The combination of persistent conversational memory, circuit-breaker-protected Odoo connectivity, immutable audit logging, and a terminal-native Codex development loop creates a system that is structurally more reliable, observable, and maintainable than either a raw ChatGPT wrapper or a stock Odoo connector.
