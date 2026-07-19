@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict
+from datetime import datetime, timezone
 from typing import Iterable
 
 from app import pendo
@@ -11,6 +12,7 @@ from app.notifications.contracts import (
     ApprovalRequest,
     DailySummary,
     DeliveryReceipt,
+    InvoiceCreatedEvent,
     InvoiceReminder,
     LowInventoryAlert,
     NotificationChannel,
@@ -18,6 +20,8 @@ from app.notifications.contracts import (
     NotificationKind,
     NotificationMessage,
     NotificationTarget,
+    PaymentReceivedEvent,
+    SystemAlert,
 )
 
 
@@ -93,12 +97,86 @@ class NotificationService:
     ) -> NotificationDispatch:
         """Request human approval before a consequential business action."""
 
+        body = f"Requested by: {request.requested_by}\n\n{request.details}"
+        if request.expires_at:
+            body += f"\n\nExpires: {request.expires_at}"
         return self._dispatch(
             NotificationMessage(
                 kind=NotificationKind.APPROVAL_REQUEST,
                 title=f"Approval required · {request.title}",
-                body=f"Requested by: {request.requested_by}\n\n{request.details}",
-                metadata={"requested_by": request.requested_by},
+                body=body,
+                metadata={"requested_by": request.requested_by, "approval_id": request.approval_id},
+            ),
+            targets,
+        )
+
+    def send_invoice_created(
+        self, event: InvoiceCreatedEvent, *, targets: Iterable[NotificationTarget] | None = None
+    ) -> NotificationDispatch:
+        """Notify that a new invoice has been created."""
+
+        body = (
+            f"Customer: {event.customer_name}\n"
+            f"Amount: {event.currency_code} {event.total}\n"
+            f"Invoice: {event.invoice_number}"
+        )
+        if event.due_date:
+            body += f"\nDue: {event.due_date.isoformat()}"
+        return self._dispatch(
+            NotificationMessage(
+                kind=NotificationKind.INVOICE_CREATED,
+                title=f"Invoice created · {event.invoice_number}",
+                body=body,
+                metadata={
+                    "invoice_number": event.invoice_number,
+                    "customer_name": event.customer_name,
+                    "total": event.total,
+                    "currency_code": event.currency_code,
+                },
+            ),
+            targets,
+        )
+
+    def send_payment_received(
+        self, event: PaymentReceivedEvent, *, targets: Iterable[NotificationTarget] | None = None
+    ) -> NotificationDispatch:
+        """Notify that a payment has been received."""
+
+        body = (
+            f"Invoice: {event.invoice_number}\n"
+            f"Customer: {event.customer_name}\n"
+            f"Amount: {event.currency_code} {event.amount}"
+        )
+        if event.paid_at:
+            body += f"\nPaid at: {event.paid_at}"
+        return self._dispatch(
+            NotificationMessage(
+                kind=NotificationKind.PAYMENT_RECEIVED,
+                title=f"Payment received · {event.invoice_number}",
+                body=body,
+                metadata={
+                    "invoice_number": event.invoice_number,
+                    "amount": event.amount,
+                    "currency_code": event.currency_code,
+                },
+            ),
+            targets,
+        )
+
+    def send_system_alert(
+        self, alert: SystemAlert, *, targets: Iterable[NotificationTarget] | None = None
+    ) -> NotificationDispatch:
+        """Send a system-level alert to operators."""
+
+        body = f"Component: {alert.component}\nLevel: {alert.level}\n\n{alert.message}"
+        if alert.details:
+            body += "\n\nDetails:\n" + "\n".join(f"- {k}: {v}" for k, v in alert.details.items())
+        return self._dispatch(
+            NotificationMessage(
+                kind=NotificationKind.SYSTEM_ALERT,
+                title=f"System alert · {alert.component}",
+                body=body,
+                metadata={"level": alert.level, "component": alert.component, **alert.details},
             ),
             targets,
         )
@@ -107,6 +185,7 @@ class NotificationService:
         self, message: NotificationMessage, targets: Iterable[NotificationTarget] | None
     ) -> NotificationDispatch:
         deliveries: list[DeliveryReceipt] = []
+        sent_at = datetime.now(timezone.utc).isoformat()
         for target in tuple(targets) if targets is not None else self._default_targets:
             channel = self._channels.get(target.channel)
             if channel is None:
@@ -115,19 +194,36 @@ class NotificationService:
                     address=target.address,
                     status="failed",
                     error="Notification channel is not configured.",
+                    sent_at=sent_at,
                 )
             else:
                 try:
                     receipt = channel.send(message, target.address)
+                    receipt = DeliveryReceipt(
+                        channel=receipt.channel,
+                        address=receipt.address,
+                        status=receipt.status,
+                        provider_message_id=receipt.provider_message_id,
+                        error=receipt.error,
+                        sent_at=sent_at,
+                    )
                 except Exception as error:  # Keep one failed target from blocking others.
+                    self._logger.error("Notification delivery failed: %s", error, exc_info=True)
                     receipt = DeliveryReceipt(
                         channel=target.channel,
                         address=target.address,
                         status="failed",
                         error=str(error),
+                        sent_at=sent_at,
                     )
             deliveries.append(receipt)
-            self._logger.info("business_notification %s", asdict(receipt))
+            self._logger.info(
+                "business_notification kind=%s channel=%s status=%s target=%s",
+                message.kind.value,
+                receipt.channel,
+                receipt.status,
+                receipt.address,
+            )
         pendo.track(
             "notification_dispatched",
             properties={

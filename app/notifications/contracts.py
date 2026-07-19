@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from enum import StrEnum
 from typing import Any, Protocol
@@ -15,6 +15,9 @@ class NotificationKind(StrEnum):
     INVOICE_REMINDER = "invoice_reminder"
     LOW_INVENTORY = "low_inventory"
     APPROVAL_REQUEST = "approval_request"
+    INVOICE_CREATED = "invoice_created"
+    PAYMENT_RECEIVED = "payment_received"
+    SYSTEM_ALERT = "system_alert"
 
 
 @dataclass(frozen=True)
@@ -44,6 +47,7 @@ class DeliveryReceipt:
     status: str
     provider_message_id: str | None = None
     error: str | None = None
+    sent_at: str | None = None
 
 
 @dataclass(frozen=True)
@@ -100,3 +104,37 @@ class ApprovalRequest:
     title: str
     details: str
     requested_by: str = "AI Operations Employee"
+    approval_id: str | None = None
+    expires_at: str | None = None
+
+
+@dataclass(frozen=True)
+class InvoiceCreatedEvent:
+    """Data for a new-invoice notification."""
+
+    invoice_number: str
+    customer_name: str
+    total: str
+    currency_code: str
+    due_date: date | None = None
+
+
+@dataclass(frozen=True)
+class PaymentReceivedEvent:
+    """Data for a payment-received notification."""
+
+    invoice_number: str
+    customer_name: str
+    amount: str
+    currency_code: str
+    paid_at: str | None = None
+
+
+@dataclass(frozen=True)
+class SystemAlert:
+    """Data for a system-level alert notification."""
+
+    level: str = "warning"
+    component: str = "system"
+    message: str = ""
+    details: dict[str, Any] = field(default_factory=dict)

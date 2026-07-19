@@ -1,19 +1,32 @@
-"""Odoo JSON-RPC gateway and service classes for business operations."""
+"""Production-grade Odoo JSON-RPC gateway with retries, circuit breaker, and resilience."""
 
 from __future__ import annotations
 
 import json
+import logging
+import time
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Protocol, cast
+from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from app import pendo
+from app.backend.circuit_breaker import CircuitBreaker, CircuitOpenError
+
+logger = logging.getLogger(__name__)
 
 
 class OdooError(RuntimeError):
     """Raised when Odoo rejects or cannot complete an RPC request."""
+
+    def __init__(self, message: str, *, odoo_error_code: str | None = None) -> None:
+        super().__init__(message)
+        self.odoo_error_code = odoo_error_code
+
+
+class OdooAuthError(OdooError):
+    """Raised when Odoo authentication fails."""
 
 
 class OdooTransport(Protocol):
@@ -31,7 +44,10 @@ class OdooGateway(Protocol):
 
 
 class UrlLibOdooTransport:
-    """Standard-library HTTP transport, keeping Odoo-specific code isolated."""
+    """Standard-library HTTP transport with timeout and error normalization."""
+
+    def __init__(self, *, timeout: int = 30) -> None:
+        self._timeout = timeout
 
     def post_json(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
         request = Request(
@@ -41,17 +57,22 @@ class UrlLibOdooTransport:
             method="POST",
         )
         try:
-            with urlopen(request, timeout=15) as response:  # noqa: S310 - configured Odoo endpoint.
-                decoded = json.loads(response.read().decode("utf-8"))
-        except (HTTPError, URLError, json.JSONDecodeError) as error:
-            raise OdooError(f"Odoo request failed: {error}") from error
+            with urlopen(request, timeout=self._timeout) as response:
+                body = response.read().decode("utf-8")
+        except HTTPError as error:
+            raise OdooError(f"Odoo HTTP error {error.code}: {error.reason}") from error
+        except URLError as error:
+            raise OdooError(f"Odoo connection failed: {error.reason}") from error
+        except json.JSONDecodeError as error:
+            raise OdooError(f"Odoo returned invalid JSON: {error}") from error
+        decoded = json.loads(body)
         if not isinstance(decoded, dict):
-            raise OdooError("Odoo returned an invalid JSON-RPC response.")
+            raise OdooError("Odoo returned a non-dict JSON-RPC response.")
         return decoded
 
 
 class OdooJsonRpcClient:
-    """Authenticate once and execute Odoo ``execute_kw`` calls over JSON-RPC."""
+    """Production-grade Odoo JSON-RPC client with authentication caching, retries, and circuit breaker."""
 
     def __init__(
         self,
@@ -60,6 +81,11 @@ class OdooJsonRpcClient:
         username: str,
         api_key: str,
         transport: OdooTransport | None = None,
+        *,
+        max_retries: int = 3,
+        base_delay: float = 1.0,
+        max_delay: float = 10.0,
+        circuit_breaker: CircuitBreaker | None = None,
     ) -> None:
         if not all([base_url.strip(), database.strip(), username.strip(), api_key.strip()]):
             raise ValueError("Odoo URL, database, username, and API key are required.")
@@ -70,10 +96,21 @@ class OdooJsonRpcClient:
         self._transport = transport or UrlLibOdooTransport()
         self._uid: int | None = None
         self._request_id = 0
+        self._max_retries = max_retries
+        self._base_delay = base_delay
+        self._max_delay = max_delay
+        self._breaker = circuit_breaker or CircuitBreaker(
+            name="odoo_jsonrpc",
+            failure_threshold=5,
+            recovery_timeout=30.0,
+        )
 
     def execute(self, model: str, method: str, args: list[Any], kwargs: dict[str, Any]) -> Any:
-        """Call a model method after obtaining a valid Odoo user ID."""
+        """Execute an Odoo model method with retries and circuit breaker protection."""
 
+        return self._breaker.call(self._execute_once, model, method, args, kwargs)
+
+    def _execute_once(self, model: str, method: str, args: list[Any], kwargs: dict[str, Any]) -> Any:
         uid = self._authenticate()
         return self._rpc(
             "object",
@@ -89,29 +126,75 @@ class OdooJsonRpcClient:
                 [self._database, self._username, self._api_key, {}],
             )
             if not isinstance(result, int) or isinstance(result, bool):
-                raise OdooError(
+                raise OdooAuthError(
                     "Odoo authentication failed. Check the database, user, and API key."
                 )
             self._uid = result
         return self._uid
 
     def _rpc(self, service: str, method: str, arguments: list[Any]) -> Any:
-        self._request_id += 1
-        response = self._transport.post_json(
-            f"{self._base_url}/jsonrpc",
-            {
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {"service": service, "method": method, "args": arguments},
-                "id": self._request_id,
-            },
-        )
+        delay = self._base_delay
+        last_error: OdooError | None = None
+
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                response = self._transport.post_json(
+                    f"{self._base_url}/jsonrpc",
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "call",
+                        "params": {"service": service, "method": method, "args": arguments},
+                        "id": self._request_id,
+                    },
+                )
+                self._request_id += 1
+                return self._handle_response(response)
+            except OdooAuthError:
+                self._uid = None
+                raise
+            except OdooError as error:
+                last_error = error
+                logger.warning(
+                    "Odoo RPC %s.%s failed (attempt %d/%d): %s",
+                    service,
+                    method,
+                    attempt,
+                    self._max_retries,
+                    error,
+                )
+                if attempt < self._max_retries:
+                    time.sleep(delay)
+                    delay = min(delay * 2, self._max_delay)
+
+        raise OdooError(f"Odoo RPC failed after {self._max_retries} attempts: {last_error}") from last_error
+
+    def _handle_response(self, response: dict[str, Any]) -> Any:
         if error := response.get("error"):
-            message = error.get("data", {}).get("message") if isinstance(error, dict) else None
-            raise OdooError(message or "Odoo rejected the request.")
+            message = self._extract_error_message(error)
+            code = self._extract_error_code(error)
+            if code == 401 or "access" in message.lower():
+                raise OdooAuthError(message, odoo_error_code=code)
+            raise OdooError(message, odoo_error_code=code)
         if "result" not in response:
             raise OdooError("Odoo response did not include a result.")
         return response["result"]
+
+    @staticmethod
+    def _extract_error_message(error: Any) -> str:
+        if isinstance(error, dict):
+            data = error.get("data")
+            if isinstance(data, dict):
+                return str(data.get("message", error.get("message", "Unknown Odoo error")))
+            return str(error.get("message", "Unknown Odoo error"))
+        return str(error)
+
+    @staticmethod
+    def _extract_error_code(error: Any) -> str | None:
+        if isinstance(error, dict):
+            data = error.get("data")
+            if isinstance(data, dict):
+                return str(data.get("code"))
+        return None
 
 
 @dataclass(frozen=True)
@@ -201,7 +284,7 @@ class OdooCustomerService:
             [["|", ["name", "ilike", query], ["email", "ilike", query]]],
             {"fields": ["id", "name", "email", "phone"], "limit": limit},
         )
-        return cast(list[dict[str, Any]], result)
+        return list(result)
 
 
 class OdooInvoiceService:

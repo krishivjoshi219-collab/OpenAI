@@ -92,5 +92,8 @@ def test_telegram_channel_calls_bot_api_and_normalizes_receipt() -> None:
     )
 
     assert transport.url.endswith("botsecret-token/sendMessage")
-    assert transport.payload == {"chat_id": "12345", "text": "Summary\n\nAll good"}
+    assert transport.payload["chat_id"] == "12345"
+    assert transport.payload["text"] == "*Summary*\n\nAll good"
+    assert transport.payload["parse_mode"] == "MarkdownV2"
+    assert transport.payload["disable_web_page_preview"] is True
     assert receipt.provider_message_id == "42"

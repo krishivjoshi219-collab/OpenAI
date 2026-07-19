@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_aster_ops_log_user,aster.ops.log.user,model_aster_ops_log,base.group_user,1,0,0,0
+access_aster_ops_log_manager,aster.ops.log.manager,model_aster_ops_log,base.group_system,1,1,1,1
+access_aster_ops_mapping_user,aster.ops.mapping.user,model_aster_ops_mapping,base.group_user,1,0,0,0
+access_aster_ops_mapping_manager,aster.ops.mapping.manager,model_aster_ops_mapping,base.group_system,1,1,1,1

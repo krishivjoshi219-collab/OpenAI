@@ -202,10 +202,6 @@ class AIService:
                 "instructions": instructions,
                 "previous_response_id": response.id,
                 "input": outputs,
-                "conversation_messages": [
-                    {"role": message.role, "content": message.content}
-                    for message in state.messages
-                ],
             }
             if tools:
                 request["tools"] = [tool.as_responses_tool() for tool in tools]

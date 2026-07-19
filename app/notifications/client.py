@@ -1,5 +1,7 @@
 """Runtime factory for configured notification services."""
 
+from __future__ import annotations
+
 from app.notifications.contracts import NotificationTarget
 from app.notifications.service import NotificationService
 from app.notifications.telegram import TelegramNotificationChannel
