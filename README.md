@@ -439,7 +439,7 @@ Card surfaces use `box-shadow` and `transform: translateY(-2px)` on hover to cre
 This project is actively developed through the **OpenAI Codex CLI** development loop.
 
 - **Codex Session ID:** `019f7498-46ec-7831-a552-1fa39a9f4525`
-- **Model:** `5.6 trra`
+- **Model:** `gpt-5.6-terra`
 - **Model Context Protocol (MCP):** Linked tooling surfaces for filesystem reads, Bash execution, and web search are wired into the Codex runtime.
 
 The development workflow is terminal-native:
