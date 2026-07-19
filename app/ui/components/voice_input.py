@@ -51,7 +51,6 @@ def render_voice_input(
     language_code = SUPPORTED_LANGUAGES[language_label]
     audio = st.audio_input(label, key=f"{key}_audio")
 
-    # No recording yet — return whatever was previously transcribed (if any)
     if audio is None:
         return st.session_state.get(f"{key}_transcript")
 
@@ -59,13 +58,13 @@ def render_voice_input(
     if not audio_bytes:
         return st.session_state.get(f"{key}_transcript")
 
-    # Only transcribe when the audio content changes
     audio_hash = hashlib.md5(audio_bytes).hexdigest()
     hash_key = f"{key}_hash"
     transcript_key = f"{key}_transcript"
 
     if st.session_state.get(hash_key) != audio_hash:
         st.session_state[hash_key] = audio_hash
+        st.session_state[f"{key}_processing"] = True
         with st.spinner("Transcribing…"):
             try:
                 text = WhisperService().transcribe(audio_bytes, language_code=language_code)
@@ -73,18 +72,24 @@ def render_voice_input(
             except ValueError as exc:
                 st.error(str(exc))
                 st.session_state[transcript_key] = None
+                st.session_state[f"{key}_processing"] = False
                 return None
             except Exception as exc:
                 st.error(f"Transcription failed: {exc}")
                 st.session_state[transcript_key] = None
+                st.session_state[f"{key}_processing"] = False
                 return None
+        st.session_state[f"{key}_processing"] = False
 
     transcript = st.session_state.get(transcript_key)
     if transcript:
         st.markdown(
-            f'<div class="voice-transcript">'
-            f'<span class="voice-icon">🎙</span> {transcript}'
-            f"</div>",
+            f"""
+            <div class="voice-transcript" style="animation: pageFadeIn .3s ease-out;">
+              <span class="voice-icon">🎙</span> {transcript}
+            </div>
+            """,
             unsafe_allow_html=True,
         )
     return transcript
+

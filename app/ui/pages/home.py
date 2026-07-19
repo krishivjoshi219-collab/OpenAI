@@ -60,3 +60,4 @@ def render() -> None:
         """,
         unsafe_allow_html=True,
     )
+

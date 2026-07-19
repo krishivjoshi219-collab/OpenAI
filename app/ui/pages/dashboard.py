@@ -12,7 +12,7 @@ from app.database.session import create_session_factory, session_scope
 from app.models import Business
 from app.services.dashboard import DashboardService, DashboardSnapshot
 from app.ui.components.layout import render_page_header, render_section_title
-from app.ui.components.widgets import render_empty_state
+from app.ui.components.widgets import render_empty_state, render_skeleton_metric, render_skeleton_card
 
 
 def render() -> None:
@@ -71,7 +71,7 @@ def _render_snapshot(snapshot: DashboardSnapshot) -> None:
     metrics = st.columns(4, gap="medium")
     with metrics[0]:
         st.metric(
-            "Today’s sales",
+            "Today's sales",
             _money(snapshot.todays_sales, currency),
             help="Paid invoices updated today.",
         )
@@ -99,22 +99,39 @@ def _render_snapshot(snapshot: DashboardSnapshot) -> None:
         render_section_title("Recent activity")
         with st.container(border=True):
             if snapshot.recent_activity:
-                for item in snapshot.recent_activity:
+                for index, item in enumerate(snapshot.recent_activity):
                     left, right = st.columns([5, 1])
                     with left:
-                        st.markdown(f"**{item.title}**  \n{item.detail}")
+                        st.markdown(
+                            f"""
+                            <div class="table-row" style="animation: pageFadeIn .4s ease-out; animation-delay: {index * .04}s;">
+                              <div class="row-primary">**{item.title}**</div>
+                              <div class="row-secondary">{item.detail}</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
                     with right:
                         st.caption(_relative_time(item.occurred_at))
-                    st.divider()
+                    if index < len(snapshot.recent_activity) - 1:
+                        st.divider()
             else:
                 st.caption("No activity recorded yet.")
     with suggestions_column:
         render_section_title("AI suggestions")
         with st.container(border=True):
             st.caption("Based on live business signals")
-            for suggestion in snapshot.suggestions:
-                st.markdown(f"💡 {suggestion}")
-                st.divider()
+            for index, suggestion in enumerate(snapshot.suggestions):
+                st.markdown(
+                    f"""
+                    <div style="animation: pageFadeIn .45s ease-out; animation-delay: {index * .06}s;">
+                      💡 {suggestion}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                if index < len(snapshot.suggestions) - 1:
+                    st.divider()
 
     inventory_column, receivables_column = st.columns(2, gap="large")
     with inventory_column:

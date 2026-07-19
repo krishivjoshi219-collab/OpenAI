@@ -61,3 +61,4 @@ def render_section_title(title: str) -> None:
     """Render a shared section heading."""
 
     st.markdown(f'<div class="section-title">{title}</div>', unsafe_allow_html=True)
+

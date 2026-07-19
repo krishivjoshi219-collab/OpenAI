@@ -15,7 +15,7 @@ from app.models.enums import InvoiceStatus
 from app.services.invoice_image import InvoiceImageData, InvoiceImageRenderer, LineItemData
 from app.services.invoice_pdf import InvoicePdfRenderer
 from app.ui.components.layout import render_page_header
-from app.ui.components.widgets import render_empty_state
+from app.ui.components.widgets import render_empty_state, render_skeleton_card
 
 
 _STATUS_TONE: dict[str, str] = {
@@ -108,14 +108,16 @@ def _render_invoice_list(
     st.markdown(f"**{len(invoices)} invoice{'s' if len(invoices) != 1 else ''}**")
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-    for inv in invoices:
-        _render_invoice_row(inv, business_name, business_email)
+    for index, inv in enumerate(invoices, start=1):
+        _render_invoice_row(inv, business_name, business_email, index=index)
 
 
 def _render_invoice_row(
     inv: Invoice,
     business_name: str,
     business_email: str | None,
+    *,
+    index: int = 0,
 ) -> None:
     status_str = inv.status.value if hasattr(inv.status, "value") else str(inv.status)
     customer_name = inv.customer.name if inv.customer else "Unknown customer"
@@ -128,8 +130,11 @@ def _render_invoice_row(
 
         with col_info:
             st.markdown(
-                f"**{inv.invoice_number}** &nbsp;·&nbsp; {customer_name} &nbsp;·&nbsp; "
-                f"`{status_str}` &nbsp;·&nbsp; {total_str} &nbsp;·&nbsp; Due {due_str}",
+                f"""
+                <div class="table-row" style="animation: pageFadeIn .4s ease-out;">
+                  <div class="row-primary">**{inv.invoice_number}** &nbsp;·&nbsp; {customer_name} &nbsp;·&nbsp; `{status_str}` &nbsp;·&nbsp; {total_str} &nbsp;·&nbsp; Due {due_str}</div>
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
 
