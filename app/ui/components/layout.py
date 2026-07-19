@@ -2,6 +2,8 @@
 
 import streamlit as st
 
+from app.ui.components.sidebar_keys import render_byok_section
+
 
 PAGES: dict[str, str] = {
     "Home": "✦  Home",
@@ -31,6 +33,7 @@ def render_sidebar() -> str:
             """,
             unsafe_allow_html=True,
         )
+        render_byok_section()
         selected = st.radio(
             "Navigation",
             options=list(PAGES),

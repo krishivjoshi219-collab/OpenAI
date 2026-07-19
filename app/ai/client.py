@@ -8,6 +8,9 @@ Supports three providers:
 The active provider is controlled by the ``AI_PROVIDER`` environment variable
 (default: ``openai``).  Groq and Gemini use a Chat Completions adapter so that
 the rest of the application can use ``AIService`` unchanged.
+
+Bring Your Own Key (BYOK): sidebar-injected keys in ``st.session_state``
+override environment secrets for the current browser session.
 """
 
 from uuid import UUID
@@ -33,19 +36,35 @@ _GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 _GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
+def _get_sidebar_key(key: str) -> str | None:
+    """Return a BYOK key from Streamlit session state if the user injected one."""
+
+    try:
+        import streamlit as st
+
+        value = st.session_state.get(f"byok_{key}")
+        return value if value else None
+    except Exception:
+        return None
+
+
 def create_openai_client() -> OpenAI:
     """Create the configured OpenAI client used by the Responses API service."""
 
-    return OpenAI(api_key=get_settings().openai_api_key)
+    api_key = _get_sidebar_key("openai_api_key") or get_settings().openai_api_key
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY is required to use the OpenAI provider.")
+    return OpenAI(api_key=api_key)
 
 
 def create_groq_client() -> ChatCompletionsClient:
     """Create a Groq Chat Completions client wrapped in the ResponsesClient adapter."""
 
     settings = get_settings()
-    if not settings.groq_api_key:
+    api_key = _get_sidebar_key("groq_api_key") or settings.groq_api_key
+    if not api_key:
         raise ValueError("GROQ_API_KEY is required to use the Groq provider.")
-    raw = OpenAI(api_key=settings.groq_api_key, base_url=_GROQ_BASE_URL)
+    raw = OpenAI(api_key=api_key, base_url=_GROQ_BASE_URL)
     return ChatCompletionsClient(raw)
 
 
@@ -53,9 +72,10 @@ def create_gemini_client() -> ChatCompletionsClient:
     """Create a Gemini Chat Completions client wrapped in the ResponsesClient adapter."""
 
     settings = get_settings()
-    if not settings.gemini_api_key:
+    api_key = _get_sidebar_key("gemini_api_key") or settings.gemini_api_key
+    if not api_key:
         raise ValueError("GEMINI_API_KEY is required to use the Gemini provider.")
-    raw = OpenAI(api_key=settings.gemini_api_key, base_url=_GEMINI_BASE_URL)
+    raw = OpenAI(api_key=api_key, base_url=_GEMINI_BASE_URL)
     return ChatCompletionsClient(raw)
 
 
