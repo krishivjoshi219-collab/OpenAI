@@ -50,3 +50,30 @@ def session_scope(factory: sessionmaker[Session]) -> Generator[Session, None, No
         raise
     finally:
         session.close()
+
+
+def create_all_tables(engine: Engine | None = None) -> None:
+    """Create all SQLAlchemy model tables if they do not already exist."""
+
+    from app.database.base import Base
+    from app.models import (  # noqa: PLC0415
+        Business,
+        BusinessMemory,
+        Customer,
+        Invoice,
+        InvoiceItem,
+        Inventory,
+        Product,
+        Reminder,
+        Settings,
+        Supplier,
+    )
+
+    db_engine = engine or create_engine_from_settings()
+    inspector = inspect(db_engine)
+    existing_tables = set(inspector.get_table_names())
+
+    required_tables = {table.name for table in Base.metadata.tables.values()}
+    missing_tables = required_tables - existing_tables
+    if missing_tables:
+        Base.metadata.create_all(bind=db_engine)

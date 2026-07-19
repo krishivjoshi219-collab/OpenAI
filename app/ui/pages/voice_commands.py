@@ -77,7 +77,7 @@ def render() -> None:
                 "▶ Run command",
                 type="primary",
                 key="run_voice_cmd",
-                use_container_width=True,
+                width="stretch",
             ):
                 _run_command(transcript, business_id)
 

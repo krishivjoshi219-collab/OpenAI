@@ -59,7 +59,7 @@ def render() -> None:
                 key="invoice_status_filter",
             )
         with col_action:
-            st.button("Create invoice", type="primary", use_container_width=True, disabled=True)
+            st.button("Create invoice", type="primary", width="stretch", disabled=True)
 
         stmt = (
             select(Invoice)
@@ -146,7 +146,7 @@ def _render_invoice_row(
                 data=_RENDERER.to_bytes(data, fmt="jpeg"),
                 file_name=f"invoice_{inv.invoice_number}.jpg",
                 mime="image/jpeg",
-                use_container_width=True,
+                width="stretch",
                 key=f"jpg_{inv.id}",
             )
 
@@ -156,7 +156,7 @@ def _render_invoice_row(
                 data=_RENDERER.to_bytes(data, fmt="avif"),
                 file_name=f"invoice_{inv.invoice_number}.avif",
                 mime="image/avif",
-                use_container_width=True,
+                width="stretch",
                 key=f"avif_{inv.id}",
             )
 
@@ -166,7 +166,7 @@ def _render_invoice_row(
                 data=_PDF_RENDERER.to_bytes(data),
                 file_name=f"invoice_{inv.invoice_number}.pdf",
                 mime="application/pdf",
-                use_container_width=True,
+                width="stretch",
                 key=f"pdf_{inv.id}",
             )
 

@@ -18,7 +18,7 @@ def render() -> None:
     with controls:
         st.text_input("Search customers", placeholder="Search by name or email", label_visibility="collapsed")
     with action:
-        st.button("Add customer", type="primary", use_container_width=True)
+        st.button("Add customer", type="primary", width="stretch")
     render_empty_state(
         "◌",
         "Your customer list is empty",

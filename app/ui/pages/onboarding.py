@@ -63,7 +63,7 @@ def _render_business_profile() -> None:
             if st.button(
                 "→ Use as business name",
                 key="obrd_fill_name",
-                use_container_width=False,
+                width="content",
             ):
                 st.session_state["obrd_biz_name"] = obrd_transcript
                 st.rerun()
@@ -170,7 +170,7 @@ def _render_preview(preview: ExtractionPreview) -> None:
         return
     st.caption(f"{preview.file_name} · {len(preview.records)} records found")
     if preview.records:
-        st.dataframe([asdict(record) for record in preview.records], use_container_width=True)
+        st.dataframe([asdict(record) for record in preview.records], width="stretch")
     else:
         st.info("No rows were found in this file. Nothing will be saved.")
     if preview.warnings:
@@ -178,7 +178,7 @@ def _render_preview(preview: ExtractionPreview) -> None:
             st.warning(warning)
     confirm, discard = st.columns([1, 4])
     with confirm:
-        if st.button("Confirm import", type="primary", use_container_width=True):
+        if st.button("Confirm import", type="primary", width="stretch"):
             _confirm_preview(preview)
     with discard:
         if st.button("Discard preview"):

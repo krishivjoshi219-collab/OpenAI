@@ -166,7 +166,7 @@ def render() -> None:
     render_section_title("Project overview")
     st.dataframe(
         _MODULE_SUMMARIES,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Module": st.column_config.TextColumn("Module", width="small"),

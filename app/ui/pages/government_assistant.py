@@ -43,11 +43,11 @@ def render() -> None:
             )
             col_a, col_b = st.columns(2)
             with col_a:
-                if st.button("→ Use as business structure", key="gov_fill_structure", use_container_width=True):
+                if st.button("→ Use as business structure", key="gov_fill_structure", width="stretch"):
                     st.session_state["gov_structure_input"] = gov_transcript
                     st.rerun()
             with col_b:
-                if st.button("→ Use as location", key="gov_fill_location", use_container_width=True):
+                if st.button("→ Use as location", key="gov_fill_location", width="stretch"):
                     st.session_state["gov_location_input"] = gov_transcript
                     st.rerun()
 
@@ -144,5 +144,5 @@ def _render_guidance(guidance: GovernmentGuidance) -> None:
     source_columns = st.columns(min(len(guidance.official_sources), 2))
     for index, source in enumerate(guidance.official_sources):
         with source_columns[index % len(source_columns)]:
-            st.link_button(source.label, source.url, use_container_width=True)
+            st.link_button(source.label, source.url, width="stretch")
     st.caption(guidance.disclaimer)

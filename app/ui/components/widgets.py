@@ -46,7 +46,7 @@ def render_empty_state(icon: str, title: str, description: str, action: str) -> 
         """,
         unsafe_allow_html=True,
     )
-    st.button(action, use_container_width=False, key=f"empty_{action}")
+    st.button(action, width="content", key=f"empty_{action}")
 
 
 def render_skeleton_metric(count: int = 4) -> None:

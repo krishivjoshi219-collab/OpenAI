@@ -18,7 +18,7 @@ def render() -> None:
     with filter_column:
         st.text_input("Search products", placeholder="Search products or SKUs", label_visibility="collapsed")
     with action:
-        st.button("Add product", type="primary", use_container_width=True)
+        st.button("Add product", type="primary", width="stretch")
     render_empty_state(
         "◇",
         "No products yet",
