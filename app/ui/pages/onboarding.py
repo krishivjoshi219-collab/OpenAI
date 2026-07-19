@@ -261,30 +261,19 @@ def _render_preview(preview: ExtractionPreview) -> None:
             )
         except Exception as exc:
             st.error(f"Preview render failed: {exc}")
-        col_confirm, col_proceed, col_discard = st.columns([1, 1, 2])
+        col_confirm, col_discard = st.columns([1, 1])
         with col_confirm:
-            if st.button("Confirm import", type="primary", width="stretch"):
+            if st.button("Confirm & save import", type="primary", width="stretch"):
                 _confirm_preview(preview)
-        with col_proceed:
-            if st.button("Confirm & Proceed to Next Step", width="stretch"):
-                if "onboarding_step" in st.session_state:
-                    st.session_state.onboarding_step = 3
-                elif "step" in st.session_state:
-                    st.session_state.step = 3
-                st.session_state.onboarding_preview = None
-                st.rerun()
         with col_discard:
             if st.button("Discard preview", width="stretch"):
                 st.session_state["onboarding_preview"] = None
                 st.rerun()
     else:
         st.info("No rows were found in this file. Nothing will be saved.")
-        if st.button("Confirm & Proceed to Next Step", type="primary", width="stretch"):
-            if "onboarding_step" in st.session_state:
-                st.session_state.onboarding_step = 3
-            elif "step" in st.session_state:
-                st.session_state.step = 3
-            st.session_state.onboarding_preview = None
+        if st.button("Proceed to Next Step", type="primary", width="stretch"):
+            st.session_state["onboarding_step"] = 3
+            st.session_state["onboarding_preview"] = None
             st.rerun()
 
 

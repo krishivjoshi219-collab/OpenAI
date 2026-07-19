@@ -17,10 +17,10 @@ class _FunctionCallItem:
 
     type = "function_call"
 
-    def __init__(self, call_id: str, name: str, arguments: str) -> None:
+    def __init__(self, call_id: str, name: str, arguments: str | None) -> None:
         self.call_id = call_id
         self.name = name
-        self.arguments = arguments  # raw JSON string, as in the Responses API
+        self.arguments = arguments or "{}"  # raw JSON string; guard against None from some providers
 
 
 class _ChatResponse:
