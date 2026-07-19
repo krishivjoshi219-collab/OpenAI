@@ -37,6 +37,7 @@ def _initialize_state() -> None:
     st.session_state.setdefault("onboarding_business_id", None)
     st.session_state.setdefault("onboarding_preview", None)
     st.session_state.setdefault("onboarding_confirmation", None)
+    st.session_state.setdefault("onboarding_step", 2)
 
 
 def _business_id() -> UUID | None:
@@ -119,6 +120,9 @@ def _render_import_flow() -> None:
     """Render preview and explicit confirmation controls for onboarding imports."""
 
     st.progress(50, text="Step 2 of 4 · Import your operational data")
+    if st.session_state.get("onboarding_step", 2) >= 3:
+        st.progress(75, text="Step 3 of 4 · Data imported and ready to review")
+        st.success("Skipped to Step 3 via debug button.")
     st.success("Business workspace created. Your imports will remain scoped to this business.")
     render_section_title("Choose data to import")
     kind = ImportKind(
@@ -178,6 +182,10 @@ def _render_preview(preview: ExtractionPreview) -> None:
     render_section_title("Review before import")
     if not preview.is_supported:
         st.warning(preview.warnings[0])
+        if st.button("Force Continue to Next Step"):
+            st.session_state.onboarding_step = 3
+            st.session_state.onboarding_preview = None
+            st.rerun()
         return
     st.caption(f"{preview.file_name} · {len(preview.records)} records found")
     if preview.records:
