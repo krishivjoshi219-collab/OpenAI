@@ -67,10 +67,13 @@ def validate_settings(settings: Any) -> list[ValidationResult]:
 
     odoo_url = getattr(settings, "odoo_url", None)
     if odoo_url:
-        required_odoo = ["odoo_database", "odoo_username", "odoo_api_key"]
-        missing = [field for field in required_odoo if not getattr(settings, field, None)]
-        if missing:
-            results.append(ValidationResult("odoo", False, f"Odoo configured but missing: {', '.join(missing)}"))
+        required_odoo_old = ["odoo_database", "odoo_username", "odoo_api_key"]
+        required_odoo_new = ["odoo_db", "odoo_username", "odoo_password"]
+        missing_old = [field for field in required_odoo_old if not getattr(settings, field, None)]
+        missing_new = [field for field in required_odoo_new if not getattr(settings, field, None)]
+        if missing_old and missing_new:
+            all_missing = sorted(set(missing_old + missing_new))
+            results.append(ValidationResult("odoo", False, f"Odoo configured but missing: {', '.join(all_missing)}"))
         else:
             results.append(ValidationResult("odoo", True, "OK"))
     else:

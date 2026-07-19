@@ -102,15 +102,15 @@ def create_odoo_ai_service() -> AIService:
     """Create an AI service exposing only the configured Odoo tool allowlist."""
 
     settings = get_settings()
-    if not all(
-        [settings.odoo_url, settings.odoo_database, settings.odoo_username, settings.odoo_api_key]
-    ):
-        raise ValueError("ODOO_URL, ODOO_DATABASE, ODOO_USERNAME, and ODOO_API_KEY are required.")
+    odoo_db = settings.odoo_db or settings.odoo_database
+    odoo_password = settings.odoo_password or settings.odoo_api_key
+    if not all([settings.odoo_url, odoo_db, settings.odoo_username, odoo_password]):
+        raise ValueError("ODOO_URL, ODOO_DB, ODOO_USERNAME, and ODOO_PASSWORD are required.")
     gateway = OdooJsonRpcClient(
         settings.odoo_url or "",
-        settings.odoo_database or "",
+        odoo_db or "",
         settings.odoo_username or "",
-        settings.odoo_api_key or "",
+        odoo_password or "",
     )
     return AIService(
         client=create_provider_client(),

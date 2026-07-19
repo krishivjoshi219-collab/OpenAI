@@ -269,10 +269,10 @@ TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 
 # Odoo (optional)
-ODOO_URL=https://your-instance.odoo.com
-ODOO_DATABASE=your-db
-ODOO_USERNAME=admin
-ODOO_API_KEY=...
+ODOO_URL=https://mock-instance.odoo.com
+ODOO_DB=mock_db
+ODOO_USERNAME=demo_admin
+ODOO_PASSWORD=demo_password
 
 # App
 SESSION_SECRET=...                     # Used by Streamlit session state signing
@@ -377,7 +377,7 @@ logger = get_logger("notifications.telegram")
 - Validates `DATABASE_URL` presence.
 - Validates the active AI provider key (`OPENAI_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY`).
 - Validates Telegram consistency (`TELEGRAM_BOT_TOKEN` ↔ `TELEGRAM_CHAT_ID`).
-- Validates Odoo completeness (`ODOO_URL` + `ODOO_DATABASE` + `ODOO_USERNAME` + `ODOO_API_KEY`).
+- Validates Odoo completeness (`ODOO_URL` + `ODOO_DB` + `ODOO_USERNAME` + `ODOO_PASSWORD`).
 
 Raising `SettingsValidationError` on failure prevents the app from starting with a half-configured environment.
 
@@ -439,7 +439,7 @@ Card surfaces use `box-shadow` and `transform: translateY(-2px)` on hover to cre
 This project is actively developed through the **OpenAI Codex CLI** development loop.
 
 - **Codex Session ID:** `019f7498-46ec-7831-a552-1fa39a9f4525`
-- **Model:** `gpt-4.1` (free tier)
+- **Model:** `5.6 trra`
 - **Model Context Protocol (MCP):** Linked tooling surfaces for filesystem reads, Bash execution, and web search are wired into the Codex runtime.
 
 The development workflow is terminal-native:

@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
     odoo_url: str | None = None
+    odoo_db: str | None = None
     odoo_database: str | None = None
     odoo_username: str | None = None
+    odoo_password: str | None = None
     odoo_api_key: str | None = None
 
 
