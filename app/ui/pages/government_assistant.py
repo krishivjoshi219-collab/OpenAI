@@ -21,7 +21,7 @@ from app.ui.components.voice_input import render_voice_input
 def render() -> None:
     """Render government-registration guidance with prominent limitations."""
 
-    st.session_state.setdefault("government_guidance", None)
+    st.session_state.setdefault("government_guidance_result", None)
 
     render_page_header(
         t("gov.eyebrow"),
@@ -95,7 +95,7 @@ def render() -> None:
                     sells_goods_or_services=sells_goods_or_services,
                 )
             )
-            st.session_state["government_guidance"] = guidance
+            st.session_state["government_guidance_result"] = guidance
             pendo.track(
                 "government_guidance_generated",
                 properties={
@@ -115,7 +115,7 @@ def render() -> None:
             )
         except Exception as exc:
             _render_fallback_guidance(jurisdiction, structure, location, str(exc))
-    guidance = st.session_state.get("government_guidance")
+    guidance = st.session_state.get("government_guidance_result")
     if isinstance(guidance, GovernmentGuidance):
         _render_guidance(guidance)
 
