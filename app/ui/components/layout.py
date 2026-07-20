@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from app import pendo
 from app.i18n import t
 from app.ui.components.sidebar_keys import render_byok_section
 
@@ -20,6 +21,14 @@ _NAV_KEYS: dict[str, str] = {
     "Settings":            "nav.settings",
     "View Code":           "nav.code",
 }
+
+
+def _track_language_switched() -> None:
+    """on_change callback for the Hinglish mode toggle; fires a Pendo track event."""
+    pendo.track(
+        "language_switched",
+        properties={"lang_is_hinglish": st.session_state.get("lang_is_hinglish", False)},
+    )
 
 
 def render_sidebar() -> str:
@@ -51,7 +60,11 @@ def render_sidebar() -> str:
             "border-top:1px solid rgba(217,247,231,.13);'></div>",
             unsafe_allow_html=True,
         )
-        st.toggle(t("sidebar.lang.toggle"), key="lang_is_hinglish")
+        st.toggle(
+            t("sidebar.lang.toggle"),
+            key="lang_is_hinglish",
+            on_change=_track_language_switched,
+        )
 
         st.markdown(
             f"""
