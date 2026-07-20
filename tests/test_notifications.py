@@ -9,9 +9,9 @@ from app.notifications.contracts import (
     DeliveryReceipt,
     InvoiceReminder,
     LowInventoryAlert,
+    NotificationKind,
     NotificationMessage,
     NotificationTarget,
-    NotificationKind,
 )
 from app.notifications.service import NotificationService
 from app.notifications.telegram import TelegramNotificationChannel

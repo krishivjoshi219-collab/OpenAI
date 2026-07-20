@@ -5,7 +5,6 @@ from __future__ import annotations
 import streamlit as st
 from config.settings import get_settings
 
-
 # ---------------------------------------------------------------------------
 # Module-level dialog — @st.dialog must NOT be defined inside another function
 # or a conditional block, or Streamlit raises
@@ -37,14 +36,20 @@ def _show_key_dialog() -> None:
             value = st.session_state.get("dlg_openai", "")
             if value:
                 st.session_state["byok_openai_api_key"] = value
+                # Clear stale preflight failure flag when key is updated
+                st.session_state.pop("preflight_failed_openai", None)
         elif provider == "groq":
             value = st.session_state.get("dlg_groq", "")
             if value:
                 st.session_state["byok_groq_api_key"] = value
+                # Clear stale preflight failure flag when key is updated
+                st.session_state.pop("preflight_failed_groq", None)
         elif provider == "gemini":
             value = st.session_state.get("dlg_gemini", "")
             if value:
                 st.session_state["byok_gemini_api_key"] = value
+                # Clear stale preflight failure flag when key is updated
+                st.session_state.pop("preflight_failed_gemini", None)
         st.rerun()
 
 

@@ -3,13 +3,12 @@
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
 from app.database.base import Base
 from app.database.repositories import Repository
 from app.models import Business, Customer, Inventory, Invoice, InvoiceItem, Product, Supplier
 from app.models.enums import InvoiceStatus
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def test_persists_business_graph_with_uuid_ids() -> None:

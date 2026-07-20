@@ -1,8 +1,5 @@
 """Tests for durable business memory and its future semantic retrieval boundary."""
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
 from app.database.base import Base
 from app.memory import (
     BusinessMemoryService,
@@ -14,6 +11,8 @@ from app.memory import (
 )
 from app.memory.repository import BusinessMemoryRepository
 from app.models import Business
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def test_memory_crud_is_business_scoped() -> None:
