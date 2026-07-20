@@ -8,20 +8,20 @@ from config.settings import get_settings
 
 # ---------------------------------------------------------------------------
 # Module-level dialog — @st.dialog must NOT be defined inside another function
-# or a conditional block, or Streamlit raises
-# "StreamlitAPIException: @st.dialog can only be used on functions defined
-# at module level."  Each re-render re-registers the same object, which is safe.
+# or a conditional block.  The title is a static string (decorator constraint);
+# body text is translated dynamically via t() at call time.
 # ---------------------------------------------------------------------------
 
 
-@st.dialog("Add Your API Key")
+@st.dialog("Add Your API Key / Apni API Key Daalo")
 def _show_key_dialog() -> None:
     """Prompt the user for an API key and save it to the BYOK session keys."""
+    from app.i18n import t  # local import avoids circular dependency at module load
 
     settings = get_settings()
     provider = settings.ai_provider.lower()
 
-    st.markdown("**Enter your API key to bypass the missing or rate-limited credential:**")
+    st.markdown(f"**{t('byok.dialog.prompt')}**")
 
     if provider == "openai":
         st.text_input("OpenAI API Key", type="password", key="dlg_openai")
@@ -30,7 +30,7 @@ def _show_key_dialog() -> None:
     elif provider == "gemini":
         st.text_input("Gemini API Key", type="password", key="dlg_gemini")
 
-    if st.button("Save Keys", type="primary"):
+    if st.button(t("byok.btn.save"), type="primary"):
         # Copy the dialog value into the BYOK session-state keys that
         # _get_sidebar_key() in client.py reads on every AI call.
         if provider == "openai":
@@ -50,13 +50,14 @@ def _show_key_dialog() -> None:
 
 def render_byok_section() -> None:
     """Render masked API key inputs in the sidebar with validation."""
+    from app.i18n import t  # local import avoids circular dependency at module load
 
     st.markdown(
-        """
+        f"""
         <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(217,247,231,.13);">
-          <div class="eyebrow" style="color:#c7f36b;">Bring Your Own Key</div>
+          <div class="eyebrow" style="color:#c7f36b;">{t("byok.heading")}</div>
           <div style="color:#9bb7aa; font-size:.72rem; margin-bottom:.6rem; line-height:1.4;">
-            Keys are stored in your browser session only. They override environment secrets.
+            {t("byok.caption")}
           </div>
         </div>
         """,
@@ -90,6 +91,7 @@ def render_byok_section() -> None:
 
 def _show_warning_if_needed() -> None:
     """Show warning callout and open the key dialog when primary keys are missing or preflight failed."""
+    from app.i18n import t  # local import avoids circular dependency at module load
 
     settings = get_settings()
     provider = settings.ai_provider.lower()
@@ -119,10 +121,5 @@ def _show_warning_if_needed() -> None:
         if rate_limited:
             st.session_state["byok_rate_limit_error"] = False
 
-        st.error(
-            "Sorry, this secret key is either not present, credits are finished, "
-            "or is rate limited. You can bypass this by adding your new API key below."
-        )
-
-        # _show_key_dialog is defined at module level above — safe to call here.
+        st.error(t("byok.error"))
         _show_key_dialog()

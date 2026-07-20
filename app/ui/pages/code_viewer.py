@@ -6,6 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 
 # ---------------------------------------------------------------------------
@@ -156,9 +157,9 @@ def render() -> None:
     """Render the searchable project code viewer."""
 
     render_page_header(
-        "Source",
-        "View Code",
-        "Browse every file in the project — search by name or content, then expand to read.",
+        t("code.eyebrow"),
+        t("code.title"),
+        t("code.subtitle"),
     )
 
     # --- Summary table -------------------------------------------------------

@@ -14,6 +14,7 @@ from app.models.enums import InvoiceStatus
 from app.models.invoice import Invoice
 from app.services.invoice_image import InvoiceImageData, InvoiceImageRenderer, LineItemData
 from app.services.invoice_pdf import InvoicePdfRenderer
+from app.i18n import t
 from app.ui.components.layout import render_page_header
 from app.ui.components.widgets import render_empty_state
 
@@ -30,9 +31,9 @@ def render() -> None:
     """Render the invoice workspace with live data and image-export actions."""
 
     render_page_header(
-        "Invoices",
-        "Keep cash flow in view.",
-        "Review invoices and download them as JPG or AVIF images for sharing or archiving.",
+        t("invoices.eyebrow"),
+        t("invoices.title"),
+        t("invoices.subtitle"),
     )
 
     factory = create_session_factory()
@@ -51,7 +52,7 @@ def render() -> None:
                 key="invoice_status_filter",
             )
         with col_action:
-            st.button("Create invoice", type="primary", width="stretch", disabled=True)
+            st.button(t("invoices.btn.create"), type="primary", width="stretch", disabled=True)
 
         stmt = (
             select(Invoice)

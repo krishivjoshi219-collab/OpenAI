@@ -13,6 +13,7 @@ from app.services.government import (
     GovernmentGuidanceRequest,
     Jurisdiction,
 )
+from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 from app.ui.components.voice_input import render_voice_input
 
@@ -23,9 +24,9 @@ def render() -> None:
     st.session_state.setdefault("government_guidance", None)
 
     render_page_header(
-        "Government assistant",
-        "Prepare your next registration step.",
-        "General information and official links for India and the United States — not legal or tax advice.",
+        t("gov.eyebrow"),
+        t("gov.title"),
+        t("gov.subtitle"),
     )
     st.warning(
         "This tool provides general educational information only. Verify every requirement with the relevant authority and a qualified local professional before filing."

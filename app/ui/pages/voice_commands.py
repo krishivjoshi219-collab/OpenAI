@@ -16,6 +16,7 @@ from app.business.engine import BusinessEngine
 from app.database.session import create_session_factory, session_scope
 from app.models import Business
 from app.services.dashboard import DashboardService
+from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 from app.ui.components.voice_input import render_voice_input
 
@@ -40,9 +41,9 @@ def render() -> None:
     """Render the voice AI command workspace."""
 
     render_page_header(
-        "Voice commands",
-        "Talk to your operations employee.",
-        "Speak in English or Hindi — create invoices, add customers, update stock, set reminders.",
+        t("voice.eyebrow"),
+        t("voice.title"),
+        t("voice.subtitle"),
     )
 
     st.session_state.setdefault("voice_history", [])
