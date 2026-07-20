@@ -24,11 +24,11 @@ def _show_key_dialog() -> None:
     st.markdown(f"**{t('byok.dialog.prompt')}**")
 
     if provider == "openai":
-        st.text_input("OpenAI API Key", type="password", key="dlg_openai")
+        st.text_input(t("byok.label.openai"), type="password", key="dlg_openai")
     elif provider == "groq":
-        st.text_input("Groq API Key", type="password", key="dlg_groq")
+        st.text_input(t("byok.label.groq"), type="password", key="dlg_groq")
     elif provider == "gemini":
-        st.text_input("Gemini API Key", type="password", key="dlg_gemini")
+        st.text_input(t("byok.label.gemini"), type="password", key="dlg_gemini")
 
     if st.button(t("byok.btn.save"), type="primary"):
         # Copy the dialog value into the BYOK session-state keys that
@@ -65,21 +65,21 @@ def render_byok_section() -> None:
     )
 
     st.text_input(
-        "OpenAI API Key",
+        t("byok.label.openai"),
         type="password",
         key="byok_openai_api_key",
         placeholder="sk-...",
         label_visibility="collapsed",
     )
     st.text_input(
-        "Groq API Key",
+        t("byok.label.groq"),
         type="password",
         key="byok_groq_api_key",
         placeholder="gsk_...",
         label_visibility="collapsed",
     )
     st.text_input(
-        "Gemini API Key",
+        t("byok.label.gemini"),
         type="password",
         key="byok_gemini_api_key",
         placeholder="AIza...",

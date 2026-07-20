@@ -53,7 +53,7 @@ def render() -> None:
         with session_scope(create_session_factory()) as session:
             businesses: list[Business] = DashboardService(session).list_businesses()
     except Exception as error:
-        st.error(f"Could not load workspaces: {error}")
+        st.error(f"{t('voice.error.workspace')}: {error}")
         return
 
     if not businesses:
@@ -66,17 +66,17 @@ def render() -> None:
     left_col, right_col = st.columns([1.6, 1], gap="large")
 
     with left_col:
-        render_section_title("Voice input")
+        render_section_title(t("voice.section.input"))
         transcript = render_voice_input(
             key="voice_cmd",
-            label="🎙 Record your command",
-            help_text='Supports English and Hindi · e.g. "Create an invoice for Acme Corp for $500"',
+            label=t("voice.label.record"),
+            help_text=t("voice.help.record"),
         )
 
         if transcript:
             st.write("")
             if st.button(
-                "▶ Run command",
+                t("voice.btn.run"),
                 type="primary",
                 key="run_voice_cmd",
                 width="stretch",
@@ -86,7 +86,7 @@ def render() -> None:
         history: list[dict] = st.session_state.get("voice_history", [])
         if history:
             st.write("")
-            render_section_title("Command history")
+            render_section_title(t("voice.section.history"))
             for entry in reversed(history):
                 _render_history_entry(entry)
 
@@ -97,17 +97,13 @@ def render() -> None:
 def _render_no_workspace() -> None:
     """Prompt the user to complete onboarding before using voice commands."""
     st.write("")
-    st.info(
-        "Complete onboarding to enable voice commands. "
-        "Head to **Onboarding** in the sidebar to create your business workspace."
-    )
+    st.info(t("voice.empty.prompt"))
     st.markdown(
-        """
+        f"""
         <div class="product-card" style="margin-top:1rem;">
-          <div class="eyebrow">Get started</div>
-          <div class="row-primary" style="margin-bottom:.4rem;">Create your workspace first</div>
-          <div class="row-secondary">Once your business is set up you can come back here and
-          speak commands like "Create an invoice for ₹5,000" or "Add a new customer".</div>
+          <div class="eyebrow">{t("voice.empty.heading")}</div>
+          <div class="row-primary" style="margin-bottom:.4rem;">{t("voice.empty.title")}</div>
+          <div class="row-secondary">{t("voice.empty.body")}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -137,7 +133,7 @@ def _select_workspace(businesses: list[Business]) -> UUID:
 def _run_command(command: str, business_id: UUID) -> None:
     """Execute a transcribed command through the business AI service."""
     entry: dict
-    with st.spinner("Working on it…"):
+    with st.spinner(t("voice.spinner.working")):
         try:
             with session_scope(create_session_factory()) as session:
                 engine = BusinessEngine(session)
@@ -171,7 +167,7 @@ def _run_command(command: str, business_id: UUID) -> None:
                 "actions": [],
                 "error": str(exc),
             }
-            st.error(f"Command failed: {exc}")
+            st.error(f"{t('voice.error.command')}: {exc}")
 
     history: list[dict] = st.session_state.get("voice_history", [])
     history.append(entry)
@@ -199,7 +195,7 @@ def _render_history_entry(entry: dict) -> None:
 
 def _render_examples() -> None:
     """Render example commands panel."""
-    render_section_title("Example commands")
+    render_section_title(t("voice.section.examples"))
     st.markdown('<div class="voice-examples">', unsafe_allow_html=True)
     st.markdown(
         '<div class="voice-example-lang">English 🇬🇧</div>',
