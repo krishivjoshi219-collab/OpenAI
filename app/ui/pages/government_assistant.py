@@ -55,7 +55,7 @@ def render() -> None:
                     st.rerun()
 
     # ── Guidance form ─────────────────────────────────────────────────────
-    with st.form("government_guidance"):
+    with st.form("government_guidance_form"):
         jurisdiction = Jurisdiction(
             st.selectbox(
                 "Country",

@@ -69,12 +69,21 @@ def create_all_tables(engine: Engine | None = None) -> None:
     """Create all SQLAlchemy model tables if they do not already exist."""
 
     from app.database.base import Base
+    from sqlalchemy import inspect
 
     db_engine = engine or create_engine_from_settings()
-    Base.metadata.create_all(bind=db_engine)
+    inspector = inspect(db_engine)
+    existing = set(inspector.get_table_names())
 
-    # Verify tables were actually created
-    from sqlalchemy import inspect
+    tables_to_create = []
+    for table in Base.metadata.sorted_tables:
+        if table.name not in existing:
+            tables_to_create.append(table)
+
+    if tables_to_create:
+        Base.metadata.create_all(bind=db_engine, tables=tables_to_create)
+
+    # Verify tables were actually created or already exist
     inspector = inspect(db_engine)
     existing = set(inspector.get_table_names())
     required = {table.name for table in Base.metadata.tables.values()}
@@ -84,3 +93,4 @@ def create_all_tables(engine: Engine | None = None) -> None:
             f"Table creation failed. Missing tables: {missing}. "
             f"Existing tables: {existing}."
         )
+
