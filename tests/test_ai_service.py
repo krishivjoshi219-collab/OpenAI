@@ -5,7 +5,12 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Any
 
-from app.ai.contracts import ConversationMessage, ConversationState, StructuredOutputSpec, ToolDefinition
+from app.ai.contracts import (
+    ConversationMessage,
+    ConversationState,
+    StructuredOutputSpec,
+    ToolDefinition,
+)
 from app.ai.service import AIService
 from app.ai.tools import ToolRegistry
 

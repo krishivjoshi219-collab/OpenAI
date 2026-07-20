@@ -23,12 +23,24 @@ def _normalize_database_url(url: str) -> str:
         return url.replace("postgresql://", "postgresql+psycopg://", 1).replace(
             "postgres://", "postgresql+psycopg://", 1
         )
+    # Preserve special SQLite URLs like :memory:
+    if url == "sqlite:///:memory:":
+        return url
     if url.startswith("sqlite:///") and not url.startswith("sqlite:////"):
         relative_path = url[len("sqlite:///"):]
         if not relative_path.startswith("/"):
             # Redirect relative SQLite paths to /tmp to avoid writing to the
             # read-only repo directory on Streamlit Community Cloud.
-            file_name = os.path.basename(relative_path) or "ai_operations_employee.db"
+            # Use a hash to avoid collisions between distinct relative paths.
+            import hashlib
+            path_hash = hashlib.sha256(relative_path.encode()).hexdigest()[:16]
+            base_name = os.path.basename(relative_path) or "ai_operations_employee.db"
+            # Remove extension from basename and add hash before re-adding extension
+            name_parts = base_name.rsplit(".", 1)
+            if len(name_parts) == 2:
+                file_name = f"{name_parts[0]}_{path_hash}.{name_parts[1]}"
+            else:
+                file_name = f"{base_name}_{path_hash}"
             return f"sqlite:////tmp/{file_name}"
     return url
 

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
-from sqlalchemy import engine_from_config, pool
-
 import app.models  # noqa: F401
+from alembic import context
 from app.database.base import Base
 from config.settings import get_settings
+from sqlalchemy import engine_from_config, pool
+
 
 def _normalize_url(url: str) -> str:
     """Rewrite bare postgresql:// / postgres:// to use the psycopg (v3) driver."""

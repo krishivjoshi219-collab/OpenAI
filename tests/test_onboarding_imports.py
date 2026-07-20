@@ -1,12 +1,11 @@
 """Tests for deterministic onboarding extraction and confirmation persistence."""
 
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
 from app.database.base import Base
 from app.models import Business, Customer
 from app.onboarding.extraction import CustomerRecord, ImportKind, create_extraction_registry
 from app.onboarding.service import OnboardingImportService
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def test_csv_customer_preview_is_reviewable_before_persistence() -> None:

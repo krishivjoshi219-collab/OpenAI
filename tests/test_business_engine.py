@@ -2,9 +2,6 @@
 
 from decimal import Decimal
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
 from app.business import (
     BusinessEngine,
     CreateCustomer,
@@ -16,6 +13,8 @@ from app.business import (
 )
 from app.database.base import Base
 from app.models import Business
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def test_engine_creates_and_searches_operational_records() -> None:
