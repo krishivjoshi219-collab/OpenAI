@@ -29,7 +29,17 @@ def apply_global_styles() -> None:
         * { box-sizing: border-box; }
         .stApp { background: var(--paper); color: var(--ink); }
         .stApp, .stApp button, .stApp input { font-family: 'Manrope', sans-serif; }
-        #MainMenu, footer, header { visibility: hidden; }
+        /* Hide Streamlit branding.  NOTE: do NOT hide `header` here — the
+           header element contains the sidebar collapse/expand toggle button
+           that users need on Streamlit Community Cloud and on mobile/narrow
+           viewports.  Hiding the full header was the cause of "cannot open
+           the menu" reports on Cloud deployments. */
+        #MainMenu { visibility: hidden; }
+        footer { visibility: hidden; }
+        header { background: transparent !important;
+                 border-bottom: none !important; }
+        /* Hide only the deploy/share toolbar items Streamlit injects */
+        [data-testid="stToolbarActions"] { visibility: hidden; }
         .block-container { max-width: 1420px; padding: 2.5rem 3rem 4rem; }
 
         /* ── Page entrance animation ───────────────────────────────────── */

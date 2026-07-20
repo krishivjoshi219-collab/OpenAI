@@ -4,9 +4,11 @@
 showSidebarNavigation = false
 
 [runner]
-magicEnabled = true
-fastReruns = true
+# Disable magic so bare string expressions are never rendered as body text.
+magicEnabled = false
 
 [server]
 headless = true
 enableXsrfProtection = true
+# Streamlit Community Cloud sets these automatically; kept here for local parity.
+maxUploadSize = 50

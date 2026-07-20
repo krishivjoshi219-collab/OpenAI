@@ -24,6 +24,29 @@ import traceback  # noqa: E402
 
 import streamlit as st  # noqa: E402
 
+
+def _bridge_secrets() -> None:
+    """Copy Streamlit Cloud secrets into os.environ so pydantic-settings reads them.
+
+    On Streamlit Community Cloud, user secrets live in the Streamlit secrets
+    manager (accessible via ``st.secrets``) rather than as OS environment
+    variables.  ``pydantic-settings`` / ``BaseSettings`` reads from
+    ``os.environ``, so we bridge the two here — before any config import —
+    whenever a key is not already present in the environment.
+
+    Only top-level string values are copied.  Nested TOML tables (e.g. a
+    ``[database]`` section) are not env-var compatible and are skipped.
+    """
+    try:
+        for key, value in st.secrets.items():
+            if isinstance(value, str) and key not in os.environ:
+                os.environ[key] = value
+    except Exception:  # noqa: BLE001
+        pass  # No secrets file / not on Cloud — skip silently
+
+
+_bridge_secrets()
+
 from app.ui.components.layout import render_sidebar  # noqa: E402
 from app.ui.components.pendo import inject_pendo  # noqa: E402
 from app.ui.components.styles import apply_global_styles  # noqa: E402

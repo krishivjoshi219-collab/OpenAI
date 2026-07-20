@@ -114,7 +114,7 @@ def _render_no_workspace() -> None:
     )
     st.write("")
     if st.button("Go to Onboarding", type="primary", width="stretch"):
-        st.session_state["nav_selected_page"] = "Onboarding"
+        st.session_state["_nav_pending"] = "Onboarding"
         st.rerun()
 
 

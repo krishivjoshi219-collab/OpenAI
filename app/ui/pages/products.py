@@ -24,7 +24,7 @@ def render() -> None:
         )
     with action:
         if st.button(t("products.btn.add"), type="primary", width="stretch"):
-            st.session_state["nav_selected_page"] = "Onboarding"
+            st.session_state["_nav_pending"] = "Onboarding"
             st.rerun()
     if render_empty_state(
         "◇",
@@ -32,6 +32,6 @@ def render() -> None:
         t("products.empty.body"),
         t("products.empty.btn"),
     ):
-        st.session_state["nav_selected_page"] = "Onboarding"
+        st.session_state["_nav_pending"] = "Onboarding"
         st.rerun()
 
