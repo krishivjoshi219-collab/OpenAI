@@ -1,197 +1,341 @@
 # Aster Ops · AI Operations Employee
-> **OpenAI Build Week Hackathon Entry**  
-> **Track:** Work and Productivity  
-> **Codex Session ID:** `019f70f1-c6ee-7243-9897-aadd366e1819`  
 
----
+> **OpenAI Build Week Hackathon Entry** · Track: Work and Productivity  
+> Codex Session ID: `019f70f1-c6ee-7243-9897-aadd366e1819`
 
-## Executive Summary
-Aster Ops is a production-grade, voice-driven AI operations employee designed for small and medium businesses. Built under the core product principle that **"People shouldn't learn software; software should learn people,"** Aster Ops provides a natural language command center that replaces complex ERP systems, manual spreadsheet tracking, and rigid databases with fluid conversational workflows.
-
-Through deep integration with the OpenAI API (and compatible multi-provider engines), Aster Ops handles onboarding data ingestion, business memory retention, automated invoicing, real-time inventory management, proactive status updates, and compliance support.
+Aster Ops is a voice-driven AI operations employee for small and medium businesses.
+It replaces complex ERP systems and manual spreadsheets with natural-language
+workflows: create customers, raise invoices, manage inventory, and get compliance
+guidance just by typing or speaking.
 
 ---
 
 ## Table of Contents
-1. [Codex Collaboration History](#1-codex-collaboration-history)
-2. [How it Works & Usage Guide](#2-how-it-works--usage-guide)
-3. [The Architectural Edge](#3-the-architectural-edge)
-   - [vs. ChatGPT Web/API](#vs-chatgpt-webapi)
-   - [vs. Stock Odoo ERP Connectors](#vs-stock-odoo-erp-connectors)
-4. [Functional Modules](#4-functional-modules)
-   - [Onboarding & Ingest](#onboarding--ingest)
-   - [Conversational Commands & Multi-turn History](#conversational-commands--multi-turn-history)
-   - [Durable RAG Business Memory](#durable-rag-business-memory)
-   - [Action Engine & Transactional Undo](#action-engine--transactional-undo)
-   - [Government Assistant (India & US)](#government-assistant-india--us)
-   - [Proactive Telegram Bot Notifications](#proactive-telegram-bot-notifications)
-   - [Searchable Code Viewer](#searchable-code-viewer)
-5. [Production Architecture](#5-production-architecture)
-   - [Resilience (Circuit Breaker, Preflight Health Checks)](#resilience-circuit-breaker-preflight-health-checks)
-   - [Observability (Metrics Collector, Structured Logger)](#observability-metrics-collector-structured-logger)
-   - [Database Schema & Models](#database-schema--models)
-6. [Installation & Getting Started](#6-installation--getting-started)
-7. [Automated Test Suite & Quality Verification](#7-automated-test-suite--quality-verification)
+
+1. [Quick Start — Streamlit Community Cloud](#1-quick-start--streamlit-community-cloud) ← **start here**
+2. [Quick Start — Run Locally](#2-quick-start--run-locally)
+3. [How Onboarding Works](#3-how-onboarding-works)
+4. [Required & Optional Secrets](#4-required--optional-secrets)
+5. [Feature Overview](#5-feature-overview)
+6. [Architecture](#6-architecture)
+7. [Running the Test Suite](#7-running-the-test-suite)
+8. [Codex Collaboration History](#8-codex-collaboration-history)
 
 ---
 
-## 1. Codex Collaboration History
+## 1. Quick Start — Streamlit Community Cloud
 
-### Session ID
-`/feedback Codex Session ID: 019f70f1-c6ee-7243-9897-aadd366e1819`
+This is the recommended way to run Aster Ops publicly without managing a server.
 
-### Narrative of Codex Cooperation
-This codebase was conceptualized, structured, and systematically built in collaboration with OpenAI Codex. Over the course of Session `019f70f1-c6ee-7243-9897-aadd366e1819` running `gpt-5.6-terra`, we transitioned the project from an abstract prompt outline into a fully typed python repository containing 11 frontend pages, 22 robust unit tests, and production-grade reliability layers.
+### Step 1 · Fork the repository
 
-Key developmental milestones achieved with Codex include:
-1. **MVP Architecture & Layout Design**: Scaffolding the repository pattern using SQLAlchemy, separating UI rendering from business services, and establishing configuration validation using Pydantic Settings.
-2. **Onboarding & Parsing Pipeline**: Crafting the heuristics for robust CSV and PDF table extraction (`pdfplumber` integration) along with interactive `st.data_editor` mapping.
-3. **Transaction Execution & Reversals**: Modeling the `ActionLog` and coding the mathematical operations required to support full **Undo** actions (e.g., reversing stock levels, restoring invoices to draft, and refunding balances).
-4. **Bilingual Voice Input Integration**: Wiring Groq Whisper audio transcription alongside localized mixed English-Hindi (Hinglish) prompt templates for conversational commands.
-5. **Proactive Telegram Wrap-up**: Programming the `TelegramBot` client and adding the sidebar event dispatch button with proper exception wrapping to guard the Streamlit UI against network drops.
+Click **Fork** on GitHub. Your fork will be the source Streamlit Cloud deploys from.
 
----
+### Step 2 · Create a Streamlit Cloud account
 
-## 2. How it Works & Usage Guide
+Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
 
-### Dynamic Walkthrough
-1. **Onboarding**: Upload your business datasets (invoices, customer directories, product stock sheets) in CSV or PDF format. Review and correct the parsed records inside the data editor before committing them to the database.
-2. **Command Center**: Control your entire business by typing or speaking in English or Hinglish:
-   * *"Create an invoice for Priya Sharma for 3 Organic Cotton Totes."*
-   * *"SKU TOTE-001 ki stock 120 units set karo."*
-3. **Action Execution & Reversal**: The AI translates your query into a structured execution package. If you make a mistake, say *"Undo the last action"* to run a rollback.
-4. **Dashboard & Analytics**: Monitor open receivables, low inventory bars, and recent activity updates.
-5. **Government Assistant**: Enter your country (US or India) and target business structure to receive state-specific checklists and regulatory filing guidance.
-6. **Telegram End-of-Day Wrap-up**: Send outbound event summaries and low-stock alerts to your team.
+### Step 3 · Deploy the app
 
----
+1. Click **New app**.
+2. Set **Repository** to your fork (`your-username/OpenAI`).
+3. Set **Branch** to `main`.
+4. Set **Main file path** to `app/ui/streamlit_app.py`.
+5. Click **Deploy**.
 
-## 3. The Architectural Edge
+### Step 4 · Add secrets
 
-### vs. ChatGPT Web/API
-Unlike simple ChatGPT wrappers, Aster Ops isolates, validates, and persists every interaction:
-* **Persistent Execution Memory**: Instead of losing context on page refreshes, Aster Ops maintains a database-backed `ConversationState`.
-* **Reliable Multi-Turn Execution**: Multi-turn history is systematically managed so the agent retains context across multiple tool calls without drift.
-* **Scoped SQL Ingestion**: Database operations are strictly isolated by UUID-based business keys, preventing leakage between workspaces.
-* **Deterministic Execution Logs**: An immutable audit log records the exact reason and schema for every AI action.
+While the app is deploying (or after it's up), open **App settings → Secrets** and
+paste in the following block.  Replace placeholder values with your real keys.
 
-### vs. Stock Odoo ERP Connectors
-Standard Odoo integrations rely on rigid, fragile sync pipelines. Aster Ops introduces:
-* **Circuit Breaker Protection**: All outgoing RPC connections to external systems like Odoo are wrapped in a three-state circuit breaker (`CLOSED`, `OPEN`, `HALF_OPEN`) to prevent cascading thread pool exhaustion.
-* **Webhook Resilience**: Incoming data updates are processed asynchronously through logging gateways, ensuring network timeouts do not block core transactions.
-* **Observability Instrumentation**: All API integrations automatically populate metrics (histograms and counters) to log latencies and error rates.
+```toml
+# ── Required for AI features ──────────────────────────────────────────────────
+GROQ_API_KEY = "gsk_..."          # https://console.groq.com
+AI_PROVIDER  = "groq"             # groq | openai | gemini
 
----
+# ── Optional: switch AI model ─────────────────────────────────────────────────
+GROQ_MODEL = "llama-3.3-70b-versatile"   # default, change if needed
 
-## 4. Functional Modules
+# ── Optional: OpenAI instead of Groq ─────────────────────────────────────────
+# AI_PROVIDER   = "openai"
+# OPENAI_API_KEY = "sk-..."
+# OPENAI_MODEL  = "gpt-4o"
 
-### Onboarding & Ingest
-Aster Ops imports operational datasets via `app/onboarding/`:
-* **CSV and PDF Table Locators**: Scans files to identify structures, normalizes header column aliases (`unit_price` vs. `price` vs. `rate`), and maps them onto clean tables.
-* **Data Verification Screen**: Users review extracted records via Streamlit’s interactive data editor before database commitment.
+# ── Optional: Telegram daily summaries ───────────────────────────────────────
+# TELEGRAM_BOT_TOKEN = "..."
+# TELEGRAM_CHAT_ID   = "..."
 
-### Conversational Commands & Multi-turn History
-* **Multilingual Input**: Support for spoken audio (Groq Whisper) and text input.
-* **Jinja2 Prompt Templates**: Version-controlled prompts construct detailed system instructions dynamically based on current memory.
-
-### Durable RAG Business Memory
-* **Context Retrieval**: Business preferences, operational facts, or customer specifications are saved into the `business_memory` table.
-* **Vectorless Retrieval**: A keyword-based token search engine queries stored facts in real-time to augment prompt context before action analysis.
-
-### Action Engine & Transactional Undo
-* **Structured Payload Validation**: Action proposals are processed as Pydantic schemas.
-* **Undo Support**: The Action Engine maintains database links for each transaction. When an undo command runs, the system reverses the values in the SQL database.
-
-### Government Assistant (India & US)
-* **Localized Checklists**: Tailored compliance rules for Indian and US jurisdictions (e.g., GST registration, EIN procurement, labor filings).
-* **Source Citations**: Links to official sites (Udyam, IRS, state portals) are provided to ensure guidelines are verifiable.
-
-### Proactive Telegram Bot Notifications
-* **Team Communication**: Sends automated alerts to Telegram channels.
-* **Manual Trigger**: The "Generate End-of-Day Wrap-up" button compiles active sales metrics and stock alerts for delivery.
-
-### Searchable Code Viewer
-* **Developer Diagnostics**: A built-in code search interface allows developers and judges to browse, filter, and inspect the codebase from inside the Streamlit app.
-
----
-
-## 5. Production Architecture
-
-```
-                                  [ Streamlit Frontend ]
-                                            │
-                      ┌─────────────────────┼─────────────────────┐
-                      ▼                     ▼                     ▼
-              [ Voice / Text ]       [ Data Ingest ]      [ Code Viewer ]
-                      │                     │
-                      ▼                     ▼
-               [ AI Service ]        [ CSV/PDF Parser ]
-                      │                     │
-      ┌───────────────┴───────────────┐     │
-      ▼                               ▼     ▼
-[ Memory RAG ]               [ Action Execution Engine ]
-                                      │
-                                      ▼
-                             [ SQLAlchemy ORM ]
-                                      │
-                              ┌───────┴───────┐
-                              ▼               ▼
-                        [ SQLite DB ]  [ Telegram Bot ]
+# ── Optional: PostgreSQL (defaults to SQLite if omitted) ─────────────────────
+# DATABASE_URL = "postgresql+psycopg://user:pass@host/dbname"
 ```
 
-### Resilience
-* **Circuit Breaker (`circuit_breaker.py`)**: Drops failing connections immediately to prevent bottleneck delays.
-* **Self-Healing Schema**: Auto-creates missing tables and applies migrations on startup without crashing the interface.
+**Where to get a free Groq API key:** [console.groq.com](https://console.groq.com) →
+sign up for free → Create API Key.
 
-### Observability
-* **Metrics Collector (`metrics.py`)**: Captures detailed metrics for database queries, tool invocation latency, and error states.
-* **JSON Structured Logging (`logging.py`)**: Structured formatting for production log ingestion.
+### Step 5 · Open the app
+
+Streamlit Cloud shows a URL like `https://your-app.streamlit.app`.  Open it and
+follow the [onboarding flow](#3-how-onboarding-works).
 
 ---
 
-## 6. Installation & Getting Started
+## 2. Quick Start — Run Locally
 
-### 1. Clone & Setup Virtual Environment
+### Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Python | 3.11 or 3.12 |
+| pip | latest (`pip install -U pip`) |
+
+### Step 1 · Clone the repo
+
 ```bash
 git clone https://github.com/krishivjoshi219-collab/OpenAI.git
 cd OpenAI
-python3 -m venv .venv
-source .venv/bin/activate
+```
+
+### Step 2 · Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and fill in your keys:
+### Step 3 · Configure environment variables
+
+Copy the example file and fill in your keys:
+
+```bash
+cp .env.example .env        # if .env.example exists
+# — or — create .env manually:
+```
+
 ```env
+# Minimum required
+GROQ_API_KEY=gsk_...
+AI_PROVIDER=groq
+
+# Optional
+GROQ_MODEL=llama-3.3-70b-versatile
 DATABASE_URL=sqlite:///aster_ops.db
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-proj-...
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 ```
 
-### 3. Run Database Migrations
+### Step 4 · Run database migrations
+
 ```bash
-alembic upgrade head
+PYTHONPATH=. alembic upgrade head
 ```
 
-### 4. Start the Application
+### Step 5 · Start the app
+
 ```bash
 PYTHONPATH=. streamlit run app/ui/streamlit_app.py
 ```
 
+The app opens at [http://localhost:8501](http://localhost:8501).
+
 ---
 
-## 7. Automated Test Suite & Quality Verification
-The project includes **22 automated tests** verifying database CRUD, RAG retrieval accuracy, onboarding parsers, and tool-calling execution.
+## 3. How Onboarding Works
 
-Run the test suite:
-```bash
-python3 -m pytest
+Onboarding takes about two minutes and has four steps.
+
+### Step 1 · Create your workspace
+
+Enter your business name, contact email, operating currency, and team size.
+You can also **say your business name** with the voice recorder (English or Hindi).
+
+### Step 2 · Import your existing data *(optional)*
+
+Upload a **PDF** or **CSV** file.  You can also skip this entirely and add data
+manually later.
+
+#### Importing a PDF
+
+Drop any business PDF — an invoice, a product catalogue, a customer report.
+The AI reads the full text, figures out what type of data it contains
+(invoices / customers / products / stock), and returns structured rows for you
+to review.
+
+> **Tip:** The AI works on text-layer PDFs.  If your PDF is a scanned image
+> without OCR text, export from your source system as CSV instead.
+
+#### Importing a CSV
+
+Aster Ops accepts CSV exports from any tool.  Column names are mapped
+fuzzily — `"customer_name"`, `"client"`, `"buyer"` all map to the customer
+name field, so you don't need to rename headers.
+
+Supported import types:
+
+| Type | What it imports |
+|------|----------------|
+| **Invoices** | invoice number, customer, amount, status, dates |
+| **Customers** | name, email, phone, billing address |
+| **Products** | name, SKU, unit price, cost price, description |
+| **Stock** | SKU, quantity on hand, reorder level |
+
+### Step 3 · Review and confirm
+
+Every extracted row is shown in an editable table before anything is saved.
+Edit cells, remove rows, or add new ones — then click **Save to workspace**.
+
+### Step 4 · You're all set
+
+Your workspace is ready.  Go to the **Business Dashboard** for a live overview,
+or start issuing **AI Commands**.
+
+---
+
+## 4. Required & Optional Secrets
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `GROQ_API_KEY` | **Yes** (if using Groq) | Get one free at [console.groq.com](https://console.groq.com) |
+| `AI_PROVIDER` | No | `groq` (default) · `openai` · `gemini` |
+| `GROQ_MODEL` | No | Default: `llama-3.3-70b-versatile` |
+| `OPENAI_API_KEY` | Only if `AI_PROVIDER=openai` | [platform.openai.com](https://platform.openai.com) |
+| `OPENAI_MODEL` | No | Default: `gpt-4o` |
+| `GEMINI_API_KEY` | Only if `AI_PROVIDER=gemini` | [ai.google.dev](https://ai.google.dev) |
+| `DATABASE_URL` | No | Defaults to `sqlite:///aster_ops.db` |
+| `TELEGRAM_BOT_TOKEN` | No | For daily summary notifications |
+| `TELEGRAM_CHAT_ID` | No | Paired with the bot token |
+
+On **Streamlit Community Cloud** paste these into **App settings → Secrets** as TOML
+(see the example in [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example)).
+
+On **local / server** set them as OS environment variables or in a `.env` file.
+
+---
+
+## 5. Feature Overview
+
+### Onboarding & AI PDF Import
+Upload any invoice PDF, product catalogue, or customer list.  The AI extracts
+structured rows automatically — no column mapping required.
+
+### Business Dashboard
+Live snapshot of unpaid invoices, low-stock products, and open customer balances,
+updated on every page load.
+
+### AI Commands (natural language)
+Type instructions like:
+- *"Create an invoice for Acme Corp for $1,500"*
+- *"Add 50 units of SKU-123 to stock"*
+- *"Mark invoice INV-042 as paid"*
+- *"What's our total outstanding balance?"*
+
+The AI executes the action and shows a confirmation.
+
+### Voice Commands
+Record audio directly in the browser.  Groq Whisper transcribes it, and the
+same AI command engine runs the instruction.  Works in English and Hindi.
+
+### Business Memory (RAG)
+Add operational context the AI retrieves mid-conversation — pricing rules,
+supplier terms, customer preferences.
+
+### Government Assistant
+Instant guidance on Indian and US compliance requirements — GST, TDS, income tax,
+FEMA, and more.
+
+### Telegram Notifications
+Send a daily business wrap-up to any Telegram chat with one click.
+
+### Bring Your Own Key (BYOK)
+Enter an API key in the sidebar to override the server-level key for your session
+— useful for shared deployments.
+
+---
+
+## 6. Architecture
+
+```
+app/
+├── ai/             # AI provider clients, tool registry, Whisper
+├── business/       # Core business engine (customers, products, invoices, stock)
+├── database/       # SQLAlchemy models, session factory, Alembic migrations
+├── models/         # ORM models and enums
+├── onboarding/     # File extraction (CSV + AI PDF) and import service
+├── prompts/        # Jinja2 prompt templates per command type
+├── ui/
+│   ├── components/ # Reusable layout, sidebar, styles, voice input
+│   └── pages/      # One file per page (home, dashboard, customers …)
+└── config.py       # pydantic-settings configuration
+config/settings.py  # Environment variable schema
 ```
 
-Check static linting and type constraints:
+### AI provider stack
+
+```
+Streamlit UI
+     │
+     ▼
+AIService (app/ai/service.py)          ← provider-agnostic orchestration
+     │
+     ├── Groq (llama-3.3-70b-versatile)     via OpenAI-compatible endpoint
+     ├── OpenAI (gpt-4o / Responses API)
+     └── Gemini (gemini-2.0-flash)           via OpenAI-compatible endpoint
+```
+
+### PDF extraction pipeline
+
+```
+Uploaded PDF
+     │
+     ▼  pdfplumber — extract full text
+     │
+     ▼  Groq / OpenAI — structured JSON extraction prompt
+     │
+     ▼  AiPdfExtractionProvider._parse_ai_response()
+     │
+     ▼  ExtractionPreview (reviewable, not yet persisted)
+     │
+     ▼  st.data_editor — user reviews / edits rows
+     │
+     ▼  OnboardingImportService.confirm() — database write
+```
+
+---
+
+## 7. Running the Test Suite
+
 ```bash
+PYTHONPATH=. python -m pytest
+```
+
+The suite has **22 tests** covering database CRUD, onboarding parsers (CSV + PDF),
+RAG retrieval, AI tool-calling, and business-rule validation.
+
+```bash
+# Lint
 ruff check .
+
+# Type-check
 mypy app
 ```
+
+---
+
+## 8. Codex Collaboration History
+
+### Session ID
+`019f70f1-c6ee-7243-9897-aadd366e1819`
+
+This codebase was built in collaboration with OpenAI Codex over one session using
+`gpt-5.6-terra`.  Key milestones:
+
+1. **MVP architecture** — SQLAlchemy repository pattern, pydantic-settings config,
+   Streamlit multi-page layout.
+2. **Onboarding pipeline** — CSV header fuzzy mapping, pdfplumber table extraction,
+   AI-powered PDF extraction (any layout), interactive `st.data_editor` review.
+3. **Transaction engine** — `ActionLog` with full undo support (reverse stock,
+   restore invoice to draft, refund balance).
+4. **Bilingual voice input** — Groq Whisper transcription + Hinglish prompt templates.
+5. **Telegram wrap-up** — `TelegramBot` client, sidebar dispatch button with
+   exception guards.
+6. **Streamlit Cloud compatibility** — `_bridge_secrets()` for `st.secrets →
+   os.environ`, CSS header fix for sidebar toggle, `_nav_pending` pattern to avoid
+   `StreamlitAPIException` on navigation.
