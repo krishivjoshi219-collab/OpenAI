@@ -186,11 +186,11 @@ def _render_import_flow() -> None:
         col_dash, col_home = st.columns([1, 1])
         with col_dash:
             if st.button("Go to Dashboard", type="primary", width="stretch"):
-                st.session_state["nav_selected_page"] = "Business Dashboard"
+                st.session_state["_nav_pending"] = "Business Dashboard"
                 st.rerun()
         with col_home:
             if st.button("Go to Home", width="stretch"):
-                st.session_state["nav_selected_page"] = "Home"
+                st.session_state["_nav_pending"] = "Home"
                 st.rerun()
 
 

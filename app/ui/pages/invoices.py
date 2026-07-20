@@ -89,7 +89,7 @@ def _render_no_business() -> None:
         "Set up your business workspace in the Onboarding section, then your invoices will appear here.",
         "Go to Onboarding",
     ):
-        st.session_state["nav_selected_page"] = "Onboarding"
+        st.session_state["_nav_pending"] = "Onboarding"
         st.rerun()
 
 

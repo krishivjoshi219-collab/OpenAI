@@ -37,7 +37,7 @@ def render() -> None:
                     t("dashboard.empty.body"),
                     t("dashboard.empty.btn"),
                 ):
-                    st.session_state["nav_selected_page"] = "Onboarding"
+                    st.session_state["_nav_pending"] = "Onboarding"
                     st.rerun()
                 return
 
