@@ -192,7 +192,8 @@ def _relative_time(value: datetime) -> str:
     """Create a compact, stable activity timestamp."""
 
     delta = datetime.now(value.tzinfo) - value
-    if delta.days:
+    # Guard against negative deltas (clock skew / future timestamps)
+    if delta.days > 0:
         return f"{delta.days}d ago"
     hours = int(delta.total_seconds() // 3600)
     return f"{max(hours, 0)}h ago"
