@@ -7,10 +7,9 @@ from uuid import UUID
 
 import streamlit as st
 
-from app.i18n import t
-
 from app import pendo
 from app.database.session import create_session_factory, session_scope
+from app.i18n import t
 from app.onboarding.extraction import ExtractionPreview, ImportKind, create_extraction_registry
 from app.onboarding.service import ImportConfirmation, OnboardingImportService
 from app.ui.components.layout import render_page_header, render_section_title
@@ -186,11 +185,11 @@ def _render_import_flow() -> None:
         col_dash, col_home = st.columns([1, 1])
         with col_dash:
             if st.button("Go to Dashboard", type="primary", width="stretch"):
-                st.session_state["nav_selected_page"] = "Business Dashboard"
+                st.session_state["_nav_pending"] = "Business Dashboard"
                 st.rerun()
         with col_home:
             if st.button("Go to Home", width="stretch"):
-                st.session_state["nav_selected_page"] = "Home"
+                st.session_state["_nav_pending"] = "Home"
                 st.rerun()
 
 

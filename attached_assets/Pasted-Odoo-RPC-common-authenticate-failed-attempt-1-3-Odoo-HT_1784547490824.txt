@@ -1,0 +1,160 @@
+Odoo RPC common.authenticate failed (attempt 1/3): Odoo HTTP error 404: Not Found
+
+Odoo RPC common.authenticate failed (attempt 2/3): Odoo HTTP error 404: Not Found
+
+Odoo RPC common.authenticate failed (attempt 3/3): Odoo HTTP error 404: Not Found
+
+Traceback (most recent call last):
+
+  File "/mount/src/openai/app/ui/streamlit_app.py", line 134, in main
+
+    PAGE_RENDERERS[selected_page]()
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+
+  File "/mount/src/openai/app/ui/pages/customers.py", line 35, in render
+
+    st.session_state["nav_selected_page"] = "Onboarding"
+
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/metrics_util.py", line 568, in wrapped_func
+
+    result = non_optional_func(*args, **kwargs)
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state_proxy.py", line 114, in __setitem__
+
+    get_session_state()[key] = value
+
+    ~~~~~~~~~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/safe_session_state.py", line 109, in __setitem__
+
+    self._state[key] = value
+
+    ~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state.py", line 796, in __setitem__
+
+    raise StreamlitAPIException(
+
+    ...<2 lines>...
+
+    )
+
+streamlit.errors.StreamlitAPIException: `st.session_state.nav_selected_page` cannot be modified after the widget with key `nav_selected_page` is instantiated.
+
+Traceback (most recent call last):
+
+  File "/mount/src/openai/app/ui/streamlit_app.py", line 134, in main
+
+    PAGE_RENDERERS[selected_page]()
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+
+  File "/mount/src/openai/app/ui/pages/products.py", line 35, in render
+
+    st.session_state["nav_selected_page"] = "Onboarding"
+
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/metrics_util.py", line 568, in wrapped_func
+
+    result = non_optional_func(*args, **kwargs)
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state_proxy.py", line 114, in __setitem__
+
+    get_session_state()[key] = value
+
+    ~~~~~~~~~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/safe_session_state.py", line 109, in __setitem__
+
+    self._state[key] = value
+
+    ~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state.py", line 796, in __setitem__
+
+    raise StreamlitAPIException(
+
+    ...<2 lines>...
+
+    )
+
+streamlit.errors.StreamlitAPIException: `st.session_state.nav_selected_page` cannot be modified after the widget with key `nav_selected_page` is instantiated.
+
+Traceback (most recent call last):
+
+  File "/mount/src/openai/app/ui/streamlit_app.py", line 134, in main
+
+    PAGE_RENDERERS[selected_page]()
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+
+  File "/mount/src/openai/app/ui/pages/business_memory.py", line 36, in render
+
+    st.session_state["nav_selected_page"] = "Voice Commands"
+
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/metrics_util.py", line 568, in wrapped_func
+
+    result = non_optional_func(*args, **kwargs)
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state_proxy.py", line 114, in __setitem__
+
+    get_session_state()[key] = value
+
+    ~~~~~~~~~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/safe_session_state.py", line 109, in __setitem__
+
+    self._state[key] = value
+
+    ~~~~~~~~~~~^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/state/session_state.py", line 796, in __setitem__
+
+    raise StreamlitAPIException(
+
+    ...<2 lines>...
+
+    )
+
+streamlit.errors.StreamlitAPIException: `st.session_state.nav_selected_page` cannot be modified after the widget with key `nav_selected_page` is instantiated.
+
+Traceback (most recent call last):
+
+  File "/mount/src/openai/app/ui/streamlit_app.py", line 134, in main
+
+    PAGE_RENDERERS[selected_page]()
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+
+  File "/mount/src/openai/app/ui/pages/government_assistant.py", line 58, in render
+
+    with st.form("government_guidance_form"):
+
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/runtime/metrics_util.py", line 568, in wrapped_func
+
+    result = non_optional_func(*args, **kwargs)
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/elements/form.py", line 220, in form
+
+    check_session_state_rules(default_value=None, key=key, writes_allowed=False)
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/home/adminuser/venv/lib/python3.14/site-packages/streamlit/elements/lib/policies.py", line 82, in check_session_state_rules
+
+    raise StreamlitValueAssignmentNotAllowedError(key=key)
+
+streamlit.errors.StreamlitValueAssignmentNotAllowedError: Values for the widget with `key` 'government_guidance' cannot be set using `st.session_state`.
+
+main
+krishivjoshi219-collab/openai/main/app/ui/streamlit_app.py
+
+

@@ -14,9 +14,9 @@ import streamlit as st
 from app.ai.client import create_business_ai_service
 from app.business.engine import BusinessEngine
 from app.database.session import create_session_factory, session_scope
+from app.i18n import t
 from app.models import Business
 from app.services.dashboard import DashboardService
-from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 from app.ui.components.voice_input import render_voice_input
 
@@ -114,7 +114,7 @@ def _render_no_workspace() -> None:
     )
     st.write("")
     if st.button("Go to Onboarding", type="primary", width="stretch"):
-        st.session_state["nav_selected_page"] = "Onboarding"
+        st.session_state["_nav_pending"] = "Onboarding"
         st.rerun()
 
 

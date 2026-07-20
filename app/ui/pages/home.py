@@ -28,7 +28,7 @@ def render() -> None:
             unsafe_allow_html=True,
         )
         if st.button(t("home.btn.start"), type="primary"):
-            st.session_state["nav_selected_page"] = "Onboarding"
+            st.session_state["_nav_pending"] = "Onboarding"
             st.rerun()
     with assistant:
         st.markdown(

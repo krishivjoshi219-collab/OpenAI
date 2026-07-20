@@ -5,7 +5,6 @@ from __future__ import annotations
 import streamlit as st
 from config.settings import get_settings
 
-
 # ---------------------------------------------------------------------------
 # Module-level dialog — @st.dialog must NOT be defined inside another function
 # or a conditional block.  The title is a static string (decorator constraint);

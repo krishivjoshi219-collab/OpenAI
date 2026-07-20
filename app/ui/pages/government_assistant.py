@@ -7,13 +7,13 @@ from __future__ import annotations
 import streamlit as st
 
 from app import pendo
+from app.i18n import t
 from app.services.government import (
     GovernmentAssistantService,
     GovernmentGuidance,
     GovernmentGuidanceRequest,
     Jurisdiction,
 )
-from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 from app.ui.components.voice_input import render_voice_input
 
@@ -21,6 +21,10 @@ from app.ui.components.voice_input import render_voice_input
 def render() -> None:
     """Render government-registration guidance with prominent limitations."""
 
+    # Clear stale session-state entry from older deployments that used the key
+    # "government_guidance" for the form widget.  If that key still exists when
+    # the page loads Streamlit raises StreamlitValueAssignmentNotAllowedError.
+    st.session_state.pop("government_guidance", None)
     st.session_state.setdefault("government_guidance_result", None)
 
     render_page_header(

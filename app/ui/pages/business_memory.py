@@ -33,6 +33,6 @@ def render() -> None:
         "routines.",
         "Add business context",
     ):
-        st.session_state["nav_selected_page"] = "Voice Commands"
+        st.session_state["_nav_pending"] = "Voice Commands"
         st.rerun()
 

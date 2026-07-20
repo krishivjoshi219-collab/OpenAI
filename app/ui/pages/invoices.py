@@ -9,12 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from app.database.session import create_session_factory, session_scope
+from app.i18n import t
 from app.models.business import Business
 from app.models.enums import InvoiceStatus
 from app.models.invoice import Invoice
 from app.services.invoice_image import InvoiceImageData, InvoiceImageRenderer, LineItemData
 from app.services.invoice_pdf import InvoicePdfRenderer
-from app.i18n import t
 from app.ui.components.layout import render_page_header
 from app.ui.components.widgets import render_empty_state
 
@@ -89,7 +89,7 @@ def _render_no_business() -> None:
         "Set up your business workspace in the Onboarding section, then your invoices will appear here.",
         "Go to Onboarding",
     ):
-        st.session_state["nav_selected_page"] = "Onboarding"
+        st.session_state["_nav_pending"] = "Onboarding"
         st.rerun()
 
 

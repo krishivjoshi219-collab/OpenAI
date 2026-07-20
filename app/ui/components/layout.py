@@ -46,6 +46,13 @@ def render_sidebar() -> str:
         )
         render_byok_section()
 
+        # Resolve any pending programmatic navigation BEFORE the radio is
+        # instantiated.  Streamlit forbids writing a widget-keyed session-state
+        # value after the widget has already rendered, so pages must store their
+        # target in the plain "_nav_pending" key and let us apply it here.
+        if "_nav_pending" in st.session_state:
+            st.session_state["nav_selected_page"] = st.session_state.pop("_nav_pending")
+
         selected = st.radio(
             "Navigation",
             options=list(_NAV_KEYS),
