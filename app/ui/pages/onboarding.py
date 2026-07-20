@@ -7,6 +7,8 @@ from uuid import UUID
 
 import streamlit as st
 
+from app.i18n import t
+
 from app import pendo
 from app.database.session import create_session_factory, session_scope
 from app.onboarding.extraction import ExtractionPreview, ImportKind, create_extraction_registry
@@ -20,10 +22,9 @@ def render() -> None:
 
     _initialize_state()
     render_page_header(
-        "Workspace setup",
-        "Let’s make this feel like your business.",
-        "Create your business workspace, then review exactly what will be imported before anything "
-        "is saved.",
+        t("onboarding.eyebrow"),
+        t("onboarding.title"),
+        t("onboarding.subtitle"),
     )
     if _business_id() is None:
         _render_business_profile()

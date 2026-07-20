@@ -9,6 +9,7 @@ from uuid import UUID
 import streamlit as st
 
 from app.database.session import create_session_factory, session_scope
+from app.i18n import t
 from app.models import Business
 from app.services.dashboard import DashboardService, DashboardSnapshot
 from app.ui.components.layout import render_page_header, render_section_title
@@ -21,9 +22,9 @@ def render() -> None:
     """Render a live operational dashboard for the selected business workspace."""
 
     render_page_header(
-        "Live operations",
-        "Business dashboard",
-        "A focused view of revenue, cash flow, stock, and the work worth your attention today.",
+        t("dashboard.eyebrow"),
+        t("dashboard.title"),
+        t("dashboard.subtitle"),
     )
     try:
         with session_scope(create_session_factory()) as session:
@@ -32,10 +33,9 @@ def render() -> None:
             if not businesses:
                 render_empty_state(
                     "✦",
-                    "Create a workspace to see your dashboard",
-                    "Your sales, payments, inventory, and activity will appear here as soon as "
-                    "business data exists.",
-                    "Go to onboarding",
+                    t("dashboard.empty.title"),
+                    t("dashboard.empty.body"),
+                    t("dashboard.empty.btn"),
                 )
                 return
             selected_id = _select_business(businesses)

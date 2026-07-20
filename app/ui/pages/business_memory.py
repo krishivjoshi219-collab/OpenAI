@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from app.i18n import t
 from app.ui.components.layout import render_page_header, render_section_title
 from app.ui.components.widgets import render_empty_state
 
@@ -10,10 +11,9 @@ def render() -> None:
     """Render the durable business context workspace."""
 
     render_page_header(
-        "Business memory",
-        "The details worth remembering.",
-        "A transparent home for the facts, preferences, and operational context your AI employee "
-        "will use.",
+        t("memory.eyebrow"),
+        t("memory.title"),
+        t("memory.subtitle"),
     )
     st.markdown(
         """

@@ -2,20 +2,23 @@
 
 import streamlit as st
 
+from app.i18n import t
 from app.ui.components.sidebar_keys import render_byok_section
 
-PAGES: dict[str, str] = {
-    "Home": "✦  Home",
-    "Onboarding": "◎  Onboarding",
-    "Business Dashboard": "▦  Business Dashboard",
-    "Customers": "◌  Customers",
-    "Products": "◇  Products",
-    "Invoices": "▤  Invoices",
-    "Business Memory": "◒  Business Memory",
-    "Government Assistant": "⌁  Government Assistant",
-    "Voice Commands": "🎙  Voice Commands",
-    "Settings": "⚙  Settings",
-    "View Code": "⟨/⟩  View Code",
+# Page keys → i18n key (kept as a stable mapping so streamlit_app.py can
+# match the returned value against PAGE_RENDERERS).
+_NAV_KEYS: dict[str, str] = {
+    "Home":                "nav.home",
+    "Onboarding":          "nav.onboarding",
+    "Business Dashboard":  "nav.dashboard",
+    "Customers":           "nav.customers",
+    "Products":            "nav.products",
+    "Invoices":            "nav.invoices",
+    "Business Memory":     "nav.memory",
+    "Government Assistant":"nav.government",
+    "Voice Commands":      "nav.voice",
+    "Settings":            "nav.settings",
+    "View Code":           "nav.code",
 }
 
 
@@ -24,27 +27,37 @@ def render_sidebar() -> str:
 
     with st.sidebar:
         st.markdown(
-            """
+            f"""
             <div class="sidebar-brand">
               <span class="brand-mark">A</span><span class="brand-name">Aster Ops</span>
-              <div class="brand-caption">AI Operations Employee</div>
+              <div class="brand-caption">{t("sidebar.caption")}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         render_byok_section()
+
         selected = st.radio(
             "Navigation",
-            options=list(PAGES),
-            format_func=lambda page: PAGES[page],
+            options=list(_NAV_KEYS),
+            format_func=lambda page: t(_NAV_KEYS[page]),
             label_visibility="collapsed",
             key="nav_selected_page",
         )
+
+        # ── Language toggle ──────────────────────────────────────────────
         st.markdown(
-            """
+            "<div style='margin-top:1rem; padding-top:0.75rem; "
+            "border-top:1px solid rgba(217,247,231,.13);'></div>",
+            unsafe_allow_html=True,
+        )
+        st.toggle(t("sidebar.lang.toggle"), key="lang_is_hinglish")
+
+        st.markdown(
+            f"""
             <div class="sidebar-note">
-              <strong>Build Week MVP</strong><br>
-              Your business workspace is ready for its first operational workflow.
+              <strong>{t("sidebar.note.heading")}</strong><br>
+              {t("sidebar.note.body")}
             </div>
             """,
             unsafe_allow_html=True,
@@ -64,4 +77,3 @@ def render_section_title(title: str) -> None:
     """Render a shared section heading."""
 
     st.markdown(f'<div class="section-title">{title}</div>', unsafe_allow_html=True)
-
