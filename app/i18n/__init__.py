@@ -72,6 +72,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Neeche apni nayi API key daalo."
         ),
     },
+    "byok.label.openai":        {"en": "OpenAI API Key",         "hi": "OpenAI API Key"},
+    "byok.label.groq":          {"en": "Groq API Key",           "hi": "Groq API Key"},
+    "byok.label.gemini":        {"en": "Gemini API Key",         "hi": "Gemini API Key"},
 
     # ── Home page ───────────────────────────────────────────────────────────
     "home.eyebrow":  {"en": "Your operations workspace",   "hi": "Aapka kaam-kaaj ka adda"},
@@ -184,6 +187,29 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Speak in English or Hindi — create invoices, add customers, update stock, set reminders.",
         "hi": "Hindi ya English mein bolo — invoice banao, customer add karo, stock update karo.",
     },
+    "voice.section.input":      {"en": "Voice input",            "hi": "Awaaz se input"},
+    "voice.label.record":       {"en": "🎙 Record your command",  "hi": "🎙 Apna command bolo"},
+    "voice.help.record":        {
+        "en": "Supports English and Hindi · e.g. \"Create an invoice for Acme Corp for $500\"",
+        "hi": "English aur Hindi supported · jaise \"Acme Corp ke liye ₹500 ka invoice banao\"",
+    },
+    "voice.btn.run":            {"en": "▶ Run command",          "hi": "▶ Command chalao"},
+    "voice.section.history":    {"en": "Command history",        "hi": "Command history"},
+    "voice.section.examples":   {"en": "Example commands",       "hi": "Example commands"},
+    "voice.spinner.working":    {"en": "Working on it…",         "hi": "Kaam chal raha hai…"},
+    "voice.error.command":      {"en": "Command failed",         "hi": "Command fail ho gayi"},
+    "voice.error.workspace":    {"en": "Could not load workspaces", "hi": "Workspaces load nahin ho saki"},
+    "voice.empty.heading":      {"en": "Get started",            "hi": "Shuru karo"},
+    "voice.empty.title":        {"en": "Create your workspace first", "hi": "Pehle workspace banao"},
+    "voice.empty.body":         {
+        "en": "Once your business is set up you can come back here and speak commands like \"Create an invoice for ₹5,000\" or \"Add a new customer\".",
+        "hi": "Jab aapka business set ho jayega toh yahan aake \"₹5,000 ka invoice banao\" ya \"Naya customer add karo\" jaise commands bol sakte ho.",
+    },
+    "voice.empty.prompt":       {
+        "en": "Complete onboarding to enable voice commands. Head to **Onboarding** in the sidebar to create your business workspace.",
+        "hi": "Voice commands enable karne ke liye onboarding complete karo. Sidebar mein **Onboarding** pe jao aur apna business workspace banao.",
+    },
+    "voice.label.workspace":    {"en": "Workspace",              "hi": "Workspace"},
 
     # ── Government Assistant ────────────────────────────────────────────────
     "gov.eyebrow":  {"en": "Government assistant",               "hi": "Sarkaari madad"},
@@ -211,6 +237,28 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "settings.section.profile": {"en": "Business profile",      "hi": "Business ki jankari"},
     "settings.section.notif":   {"en": "Notifications",         "hi": "Suchnaayein"},
     "settings.btn.save":        {"en": "Save preferences",       "hi": "Preferences Save Karo"},
+    "settings.label.biz_name":  {"en": "Business name",          "hi": "Business ka naam"},
+    "settings.ph.biz_name":     {"en": "Your business name",     "hi": "Aapke business ka naam"},
+    "settings.label.biz_email": {"en": "Business email",         "hi": "Business email"},
+    "settings.ph.biz_email":    {"en": "you@company.com",        "hi": "aap@company.com"},
+    "settings.label.currency":  {"en": "Default currency",       "hi": "Default currency"},
+    "settings.opt.currency.usd":{"en": "USD — US Dollar",        "hi": "USD — US Dollar"},
+    "settings.opt.currency.eur":{"en": "EUR — Euro",             "hi": "EUR — Euro"},
+    "settings.opt.currency.inr":{"en": "INR — Indian Rupee",     "hi": "INR — Indian Rupee"},
+    "settings.label.timezone":  {"en": "Time zone",              "hi": "Time zone"},
+    "settings.opt.tz.kolkata":  {"en": "Asia/Kolkata",           "hi": "Asia/Kolkata"},
+    "settings.opt.tz.london":   {"en": "Europe/London",          "hi": "Europe/London"},
+    "settings.opt.tz.newyork":  {"en": "America/New_York",       "hi": "America/New_York"},
+    "settings.toggle.summary":  {"en": "Operational summaries",  "hi": "Operational summaries"},
+    "settings.help.summary":    {
+        "en": "A future summary of business activity.",
+        "hi": "Business activity ka future summary.",
+    },
+    "settings.toggle.alerts":   {"en": "Attention-needed alerts","hi": "Dhyaan chahiye alerts"},
+    "settings.help.alerts":     {
+        "en": "A future alert for items requiring review.",
+        "hi": "Review chahiye items ke liye future alert.",
+    },
 
     # ── Code Viewer ─────────────────────────────────────────────────────────
     "code.eyebrow":  {"en": "Source",                            "hi": "Source"},

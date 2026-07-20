@@ -17,12 +17,20 @@ def render() -> None:
     render_section_title(t("settings.section.profile"))
     left, right = st.columns(2, gap="large")
     with left:
-        st.text_input("Business name", placeholder="Your business name")
-        st.text_input("Business email", placeholder="you@company.com")
+        st.text_input(t("settings.label.biz_name"), placeholder=t("settings.ph.biz_name"))
+        st.text_input(t("settings.label.biz_email"), placeholder=t("settings.ph.biz_email"))
     with right:
-        st.selectbox("Default currency", ["USD — US Dollar", "EUR — Euro", "INR — Indian Rupee"])
-        st.selectbox("Time zone", ["Asia/Kolkata", "Europe/London", "America/New_York"])
+        st.selectbox(t("settings.label.currency"), [
+            t("settings.opt.currency.usd"),
+            t("settings.opt.currency.eur"),
+            t("settings.opt.currency.inr"),
+        ])
+        st.selectbox(t("settings.label.timezone"), [
+            t("settings.opt.tz.kolkata"),
+            t("settings.opt.tz.london"),
+            t("settings.opt.tz.newyork"),
+        ])
     render_section_title(t("settings.section.notif"))
-    st.toggle("Operational summaries", value=True, help="A future summary of business activity.")
-    st.toggle("Attention-needed alerts", value=True, help="A future alert for items requiring review.")
+    st.toggle(t("settings.toggle.summary"), value=True, help=t("settings.help.summary"))
+    st.toggle(t("settings.toggle.alerts"), value=True, help=t("settings.help.alerts"))
     st.button(t("settings.btn.save"), type="primary")
