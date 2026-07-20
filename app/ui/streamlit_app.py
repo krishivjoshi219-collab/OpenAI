@@ -112,16 +112,21 @@ def _handle_global_error(exc: Exception) -> None:
 def main() -> None:
     """Configure and render the selected presentation-only workspace page."""
 
+    # set_page_config MUST be the first Streamlit call each run.  If it were
+    # placed after _init_database_once() and that function raised an exception,
+    # the outer except block would call st.error() before set_page_config,
+    # crashing with StreamlitSetPageConfigMustBeCalledInTheMainModuleException.
+    st.set_page_config(
+        page_title="Aster Ops · AI Operations Employee",
+        page_icon="✦",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
     try:
         _init_database_once()
         _run_preflight_once()
 
-        st.set_page_config(
-            page_title="Aster Ops · AI Operations Employee",
-            page_icon="✦",
-            layout="wide",
-            initial_sidebar_state="expanded",
-        )
         apply_global_styles()
         inject_pendo()
         inject_toast_container()

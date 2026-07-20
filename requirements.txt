@@ -1,5 +1,5 @@
 # Application
-streamlit>=1.39,<2.0
+streamlit>=1.42,<2.0
 openai>=1.0,<3.0
 SQLAlchemy>=2.0,<3.0
 alembic>=1.13,<2.0
@@ -17,3 +17,16 @@ ruff>=0.8,<1.0
 mypy>=1.13,<2.0
 reportlab>=5.0,<6.0
 pdfplumber>=0.11,<1.0
+alembic
+openai
+pdfplumber
+Pillow
+psycopg[binary]
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+reportlab
+requests
+SQLAlchemy
+streamlit

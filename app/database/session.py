@@ -11,7 +11,13 @@ from sqlalchemy.orm import Session, sessionmaker
 
 
 def _normalize_database_url(url: str) -> str:
-    """Ensure PostgreSQL URLs use the psycopg (v3) driver, not psycopg2."""
+    """Ensure PostgreSQL URLs use the psycopg (v3) driver, not psycopg2.
+
+    Relative SQLite paths (e.g. ``sqlite:///./app.db``) are redirected to
+    ``/tmp/`` so the database is always written to the writable temp
+    directory.  This is critical on Streamlit Community Cloud where the
+    repository root is mounted read-only.
+    """
 
     if url.startswith("postgresql://") or url.startswith("postgres://"):
         return url.replace("postgresql://", "postgresql+psycopg://", 1).replace(
@@ -20,8 +26,10 @@ def _normalize_database_url(url: str) -> str:
     if url.startswith("sqlite:///") and not url.startswith("sqlite:////"):
         relative_path = url[len("sqlite:///"):]
         if not relative_path.startswith("/"):
-            absolute_path = os.path.abspath(relative_path)
-            return f"sqlite:///{absolute_path}"
+            # Redirect relative SQLite paths to /tmp to avoid writing to the
+            # read-only repo directory on Streamlit Community Cloud.
+            file_name = os.path.basename(relative_path) or "ai_operations_employee.db"
+            return f"sqlite:////tmp/{file_name}"
     return url
 
 
