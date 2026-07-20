@@ -31,11 +31,17 @@ def render() -> None:
             st.session_state["nav_selected_page"] = "Onboarding"
             st.rerun()
     with assistant:
+        # Derive real onboarding progress from session state so the counter
+        # stays accurate after the user completes steps.
+        _biz_created = bool(st.session_state.get("onboarding_business_id"))
+        _step = int(st.session_state.get("onboarding_step", 2)) if _biz_created else 0
+        # step 2 = import screen (1 done), 3 = confirmed (2 done), 4 = complete (4 done)
+        _steps_done = {0: 0, 2: 1, 3: 2, 4: 4}.get(_step, 1) if _biz_created else 0
         st.markdown(
             f"""
             <div class="product-card">
               <div class="eyebrow">{t("home.status.label")}</div>
-              <div class="metric-value">0 / 4</div>
+              <div class="metric-value">{_steps_done} / 4</div>
               <div class="row-secondary">{t("home.status.steps")}</div>
             </div>
             """,
