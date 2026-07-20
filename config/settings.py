@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     app_env: str = "development"
     log_level: str = "INFO"
-    database_url: str = "sqlite:///./ai_operations_employee.db"
+    database_url: str = "sqlite:////tmp/ai_operations_employee.db"
     # AI provider selection: "openai" | "groq" | "gemini"
     ai_provider: str = "openai"
     openai_api_key: str | None = None
