@@ -28,6 +28,7 @@ _SECTIONS: list[tuple[str, list[str]]] = [
         "app/ui/pages/invoices.py",
         "app/ui/pages/business_memory.py",
         "app/ui/pages/government_assistant.py",
+        "app/ui/pages/voice_commands.py",
         "app/ui/pages/settings.py",
         "app/ui/pages/code_viewer.py",
     ]),
@@ -35,6 +36,9 @@ _SECTIONS: list[tuple[str, list[str]]] = [
         "app/ui/components/layout.py",
         "app/ui/components/styles.py",
         "app/ui/components/widgets.py",
+        "app/ui/components/voice_input.py",
+        "app/ui/components/sidebar_keys.py",
+        "app/ui/components/toast.py",
         "app/ui/components/pendo.py",
     ]),
     ("AI layer", [

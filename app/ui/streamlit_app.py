@@ -16,7 +16,9 @@ for _candidate in [
     if (_resolved / "app").is_dir() and str(_resolved) not in sys.path:
         sys.path.insert(0, str(_resolved))
 
-"""Streamlit entry point for the AI Operations Employee MVP."""
+# Streamlit entry point for the AI Operations Employee MVP.
+# (Kept as a comment — a bare string literal here would be rendered as visible
+#  text by Streamlit's magic-command feature since it follows executable code.)
 
 import traceback  # noqa: E402
 

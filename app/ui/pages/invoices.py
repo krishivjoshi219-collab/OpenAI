@@ -116,8 +116,8 @@ def _render_invoice_row(
 ) -> None:
     status_str = inv.status.value if hasattr(inv.status, "value") else str(inv.status)
     customer_name = inv.customer.name if inv.customer else "Unknown customer"
-    sym = inv.currency_code[:1] if inv.currency_code else "$"
-    total_str = f"{sym}{inv.total:,.2f}"
+    currency = inv.currency_code or "USD"
+    total_str = f"{currency} {inv.total:,.2f}"
     due_str = inv.due_on.strftime("%d %b %Y") if inv.due_on else "No due date"
 
     with st.container():
