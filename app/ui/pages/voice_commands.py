@@ -112,6 +112,11 @@ def _render_no_workspace() -> None:
         """,
         unsafe_allow_html=True,
     )
+    st.write("")
+    if st.button("Go to Onboarding", type="primary", width="stretch"):
+        st.session_state["nav_selected_page"] = "Onboarding"
+        st.rerun()
+
 
 
 def _select_workspace(businesses: list[Business]) -> UUID:

@@ -31,13 +31,16 @@ def render() -> None:
             service = DashboardService(session)
             businesses = service.list_businesses()
             if not businesses:
-                render_empty_state(
+                if render_empty_state(
                     "✦",
                     t("dashboard.empty.title"),
                     t("dashboard.empty.body"),
                     t("dashboard.empty.btn"),
-                )
+                ):
+                    st.session_state["nav_selected_page"] = "Onboarding"
+                    st.rerun()
                 return
+
             selected_id = _select_business(businesses)
             snapshot = service.snapshot(selected_id)
     except Exception as error:
@@ -107,7 +110,7 @@ def _render_snapshot(snapshot: DashboardSnapshot) -> None:
                         st.markdown(
                             f"""
                             <div class="table-row" style="animation: pageFadeIn .4s ease-out; animation-delay: {index * .04}s;">
-                              <div class="row-primary">**{item.title}**</div>
+                              <div class="row-primary"><strong>{item.title}</strong></div>
                               <div class="row-secondary">{item.detail}</div>
                             </div>
                             """,

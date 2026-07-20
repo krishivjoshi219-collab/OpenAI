@@ -23,10 +23,15 @@ def render() -> None:
             label_visibility="collapsed",
         )
     with action:
-        st.button(t("products.btn.add"), type="primary", width="stretch")
-    render_empty_state(
+        if st.button(t("products.btn.add"), type="primary", width="stretch"):
+            st.session_state["nav_selected_page"] = "Onboarding"
+            st.rerun()
+    if render_empty_state(
         "◇",
         t("products.empty.title"),
         t("products.empty.body"),
         t("products.empty.btn"),
-    )
+    ):
+        st.session_state["nav_selected_page"] = "Onboarding"
+        st.rerun()
+

@@ -26,10 +26,13 @@ def render() -> None:
         unsafe_allow_html=True,
     )
     render_section_title("Saved context")
-    render_empty_state(
+    if render_empty_state(
         "◒",
         "No saved context yet",
         "Add useful facts such as operating preferences, customer commitments, or recurring business "
         "routines.",
         "Add business context",
-    )
+    ):
+        st.session_state["nav_selected_page"] = "Voice Commands"
+        st.rerun()
+

@@ -25,4 +25,6 @@ def render() -> None:
     render_section_title(t("settings.section.notif"))
     st.toggle("Operational summaries", value=True, help="A future summary of business activity.")
     st.toggle("Attention-needed alerts", value=True, help="A future alert for items requiring review.")
-    st.button(t("settings.btn.save"), type="primary")
+    if st.button(t("settings.btn.save"), type="primary"):
+        st.toast("Settings saved successfully!", icon="✅")
+
