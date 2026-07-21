@@ -318,4 +318,4 @@ def _import_label(value: str) -> str:
         ImportKind.PRODUCTS.value: "Product list",
         ImportKind.STOCK.value: "Stock sheet",
     }
-    return labels[value]
+    return labels.get(value, value)  # safe fallback — avoids KeyError on unknown ImportKind

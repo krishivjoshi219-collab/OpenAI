@@ -68,9 +68,9 @@ def render() -> None:
     if not invoices:
         render_empty_state(
             "▤",
-            "No invoices to show",
-            "When you create an invoice, its status, value, and due date will be easy to follow here.",
-            "Create your first invoice",
+            t("invoices.empty.title"),
+            t("invoices.empty.body"),
+            t("invoices.empty.btn"),
         )
         return
 
@@ -85,9 +85,9 @@ def render() -> None:
 def _render_no_business() -> None:
     if render_empty_state(
         "◎",
-        "Complete onboarding first",
-        "Set up your business workspace in the Onboarding section, then your invoices will appear here.",
-        "Go to Onboarding",
+        t("invoices.no_biz.title"),
+        t("invoices.no_biz.body"),
+        t("invoices.no_biz.btn"),
     ):
         st.session_state["nav_selected_page"] = "Onboarding"
         st.rerun()
@@ -100,7 +100,8 @@ def _render_invoice_list(
 ) -> None:
     """Render every invoice as a card row with JPG / AVIF download buttons."""
 
-    st.markdown(f"**{len(invoices)} invoice{'s' if len(invoices) != 1 else ''}**")
+    plural = t("invoices.count.plural") if len(invoices) != 1 else t("invoices.count.singular")
+    st.markdown(f"**{len(invoices)} {plural}**")
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
     for index, inv in enumerate(invoices, start=1):

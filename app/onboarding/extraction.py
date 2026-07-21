@@ -113,7 +113,11 @@ class CsvExtractionProvider:
         return ExtractionPreview(kind=kind, file_name=file_name, records=records)
 
     def _read_rows(self, content: bytes) -> list[dict[str, str]]:
-        text = content.decode("utf-8-sig")
+        # Try UTF-8 (with BOM) first; fall back to latin-1 for Windows-encoded files.
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = content.decode("latin-1")
         reader = csv.DictReader(StringIO(text))
         if reader.fieldnames is None:
             raise ValueError("The CSV must include a header row.")
@@ -197,8 +201,11 @@ class CsvExtractionProvider:
             ) or InvoiceStatus.DRAFT.value
             try:
                 status = InvoiceStatus(status_value.lower())
-            except ValueError as error:
-                raise ValueError(f"Unsupported invoice status: {status_value}") from error
+            except ValueError:
+                # Unknown status value — default to DRAFT so the rest of the
+                # import can continue.  The user will see the status in the
+                # preview and can correct it before confirming.
+                status = InvoiceStatus.DRAFT
             records.append(
                 InvoiceRecord(
                     invoice_number=self._required(

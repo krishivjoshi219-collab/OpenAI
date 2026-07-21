@@ -16,20 +16,18 @@ def render() -> None:
         t("memory.subtitle"),
     )
     st.markdown(
-        """
+        f"""
         <div class="action-card">
-          <h3>Memory stays business-scoped.</h3>
-          <p>As you add context, it will remain visible and manageable here. Nothing is hidden behind
-          the assistant.</p>
+          <h3>{t("memory.card.heading")}</h3>
+          <p>{t("memory.card.body")}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    render_section_title("Saved context")
+    render_section_title(t("memory.section.saved"))
     render_empty_state(
         "◒",
-        "No saved context yet",
-        "Add useful facts such as operating preferences, customer commitments, or recurring business "
-        "routines.",
-        "Add business context",
+        t("memory.empty.title"),
+        t("memory.empty.body"),
+        t("memory.empty.btn"),
     )

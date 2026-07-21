@@ -212,6 +212,51 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "settings.section.notif":   {"en": "Notifications",         "hi": "Suchnaayein"},
     "settings.btn.save":        {"en": "Save preferences",       "hi": "Preferences Save Karo"},
 
+    # ── Voice Commands — section titles & UI ───────────────────────────────
+    "voice.section.input":    {"en": "Voice input",        "hi": "Awaaz se input"},
+    "voice.section.history":  {"en": "Command history",    "hi": "Command history"},
+    "voice.section.examples": {"en": "Example commands",   "hi": "Kuch examples"},
+    "voice.record.label":     {"en": "🎙 Record your command", "hi": "🎙 Apna command record karo"},
+    "voice.record.help":      {
+        "en": 'Supports English and Hindi · e.g. "Create an invoice for Acme Corp for $500"',
+        "hi": 'Hindi ya English dono chalti hain · jaise "Acme Corp ka ₹500 ka invoice banao"',
+    },
+    "voice.btn.run":          {"en": "▶ Run command",      "hi": "▶ Chalaao"},
+    "voice.no_workspace.info":{
+        "en": "Complete onboarding to enable voice commands. Head to **Onboarding** in the sidebar to create your business workspace.",
+        "hi": "Voice commands ke liye pehle onboarding poori karo. Sidebar mein **Shuruat** pe jao.",
+    },
+
+    # ── Business Memory — empty state ───────────────────────────────────────
+    "memory.card.heading":    {"en": "Memory stays business-scoped.",  "hi": "Memory aapke business ke liye hi hai."},
+    "memory.card.body":       {
+        "en": "As you add context, it will remain visible and manageable here. Nothing is hidden behind the assistant.",
+        "hi": "Jaise-jaise aap context add karte hain, woh yahan dikhta rahega. Assistant ke peeche kuch nahi chupaaya.",
+    },
+    "memory.section.saved":   {"en": "Saved context",                  "hi": "Saved context"},
+    "memory.empty.title":     {"en": "No saved context yet",           "hi": "Abhi koi context save nahin hai"},
+    "memory.empty.body":      {
+        "en": "Add useful facts such as operating preferences, customer commitments, or recurring business routines.",
+        "hi": "Kaam ke tarikey, customer commitments, ya business routines — sab yahan add karo.",
+    },
+    "memory.empty.btn":       {"en": "Add business context",           "hi": "Context Add Karo"},
+
+    # ── Invoices — empty states ─────────────────────────────────────────────
+    "invoices.empty.title":   {"en": "No invoices to show",            "hi": "Abhi koi invoice nahin hai"},
+    "invoices.empty.body":    {
+        "en": "When you create an invoice, its status, value, and due date will be easy to follow here.",
+        "hi": "Invoice banao toh uski status, amount aur due date yahan aasaan se track hogi.",
+    },
+    "invoices.empty.btn":     {"en": "Create your first invoice",      "hi": "Pehla Invoice Banao"},
+    "invoices.no_biz.title":  {"en": "Complete onboarding first",      "hi": "Pehle onboarding poori karo"},
+    "invoices.no_biz.body":   {
+        "en": "Set up your business workspace in the Onboarding section, then your invoices will appear here.",
+        "hi": "Onboarding mein apna business workspace banao, phir invoices yahan aayenge.",
+    },
+    "invoices.no_biz.btn":    {"en": "Go to Onboarding",               "hi": "Onboarding Pe Jao"},
+    "invoices.count.plural":  {"en": "invoices",                       "hi": "invoices"},
+    "invoices.count.singular":{"en": "invoice",                        "hi": "invoice"},
+
     # ── Code Viewer ─────────────────────────────────────────────────────────
     "code.eyebrow":  {"en": "Source",                            "hi": "Source"},
     "code.title":    {"en": "View Code",                         "hi": "Code Dekho"},
