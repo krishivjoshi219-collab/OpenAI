@@ -3,6 +3,11 @@
 Uses Groq's audio transcription endpoint (OpenAI-compatible) to convert
 recorded audio to text in English or Hindi.  Requires ``GROQ_API_KEY``
 in the environment — the same key used for the Groq LLM provider.
+
+On Streamlit Community Cloud the key can also be supplied via the BYOK
+sidebar (stored in ``st.session_state["byok_groq_api_key"]``), which
+takes precedence over the environment secret so users can try the voice
+feature with their own key without a redeploy.
 """
 
 from __future__ import annotations
@@ -22,18 +27,32 @@ SUPPORTED_LANGUAGES: dict[str, str] = {
 }
 
 
+def _get_groq_api_key() -> str | None:
+    """Return the Groq API key, preferring the BYOK sidebar value when set."""
+    try:
+        import streamlit as st  # noqa: PLC0415
+
+        byok = st.session_state.get("byok_groq_api_key")
+        if byok:
+            return byok
+    except Exception:  # noqa: BLE001
+        pass
+    return get_settings().groq_api_key
+
+
 class WhisperService:
     """Transcribe audio bytes using Groq's Whisper endpoint."""
 
     def __init__(self) -> None:
-        settings = get_settings()
-        if not settings.groq_api_key:
+        api_key = _get_groq_api_key()
+        if not api_key:
             raise ValueError(
                 "GROQ_API_KEY is required for voice transcription. "
-                "Add it to your Replit Secrets and restart the app."
+                "Add it to your Replit Secrets or paste it into the "
+                "Bring Your Own Key section in the sidebar."
             )
         self._client = OpenAI(
-            api_key=settings.groq_api_key,
+            api_key=api_key,
             base_url=_GROQ_BASE_URL,
         )
 
