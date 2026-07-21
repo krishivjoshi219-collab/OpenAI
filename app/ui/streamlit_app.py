@@ -88,13 +88,24 @@ def _run_preflight_once() -> None:
 
     try:
         import asyncio
+        import concurrent.futures
 
         from config.settings import get_settings
 
         from app.backend.preflight import run_preflight_checks
 
         settings = get_settings()
-        results = asyncio.run(run_preflight_checks(settings, total_timeout_ms=3000))
+
+        # asyncio.run() cannot be called from a thread that already has a running
+        # event loop (Streamlit >= 1.18 installs one on the main thread). The safe
+        # solution is to submit asyncio.run() to a *worker* thread, which starts
+        # with no loop, and block the calling thread until it finishes.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(
+                asyncio.run,
+                run_preflight_checks(settings, total_timeout_ms=3000),
+            )
+            results = future.result(timeout=5)
 
         for name, result in results.items():
             st.session_state[f"preflight_result_{name}"] = result

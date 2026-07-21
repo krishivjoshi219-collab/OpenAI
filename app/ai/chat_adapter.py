@@ -167,7 +167,13 @@ class _ChatCompletionsResource:
 
     @staticmethod
     def _convert_tool(tool: dict[str, Any]) -> dict[str, Any]:
-        """Convert a Responses API tool definition to Chat Completions format."""
+        """Convert a Responses API tool definition to Chat Completions format.
+
+        The ``strict`` field is intentionally omitted: it is an OpenAI-only
+        extension that Groq and Gemini reject with a 400 error.  The
+        OpenAI Responses API provider (which handles the native strict path)
+        never goes through this adapter.
+        """
 
         return {
             "type": "function",
@@ -175,13 +181,17 @@ class _ChatCompletionsResource:
                 "name": tool["name"],
                 "description": tool.get("description", ""),
                 "parameters": tool.get("parameters", {}),
-                "strict": tool.get("strict", True),
             },
         }
 
     @staticmethod
     def _convert_format(text: dict[str, Any]) -> dict[str, Any] | None:
-        """Convert a Responses API text-format spec to Chat Completions response_format."""
+        """Convert a Responses API text-format spec to Chat Completions response_format.
+
+        ``strict`` inside ``json_schema`` is an OpenAI-only extension.  Groq
+        and Gemini either ignore it or reject it, so it is omitted here.
+        Both providers support ``json_schema`` response_format without ``strict``.
+        """
 
         fmt = text.get("format", {})
         if fmt.get("type") == "json_schema":
@@ -190,7 +200,6 @@ class _ChatCompletionsResource:
                 "json_schema": {
                     "name": fmt.get("name", "response"),
                     "schema": fmt.get("schema", {}),
-                    "strict": fmt.get("strict", True),
                 },
             }
         return {"type": "json_object"}
