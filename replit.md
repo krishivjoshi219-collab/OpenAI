@@ -12,8 +12,8 @@
 
 ## How to run
 The workflow **Start application** runs the app on port 5000:
-```
-PYTHONPATH=/home/runner/workspace streamlit run app/ui/streamlit_app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true
+```bash
+PYTHONPATH=. streamlit run app/ui/streamlit_app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true
 ```
 
 ## Required secrets
@@ -30,13 +30,13 @@ At least one AI provider key is required. Add it via Replit Secrets **or** paste
 Set `AI_PROVIDER=groq` (or `gemini`) to switch providers.
 
 ## Key fixes applied (post-import)
-- `asyncio.run()` replaced with `asyncio.new_event_loop().run_until_complete()` in the preflight check so it works on Streamlit Cloud's event-loop thread
+- `asyncio.run()` called in a worker thread for the preflight check so it works on Streamlit Cloud where the main thread already has an event loop
 - `WhisperService` now checks the BYOK sidebar Groq key before falling back to environment secrets
 - Chat adapter (`Groq`/`Gemini` path) no longer sends the `strict` field in tool definitions or JSON schema — Groq rejects it with a 400 error
 - `reportlab` and `psycopg[binary]` installed and confirmed working
 
 ## Project layout
-```
+```text
 app/
   ui/               Streamlit pages + components
   ai/               AI provider clients and tool orchestration
